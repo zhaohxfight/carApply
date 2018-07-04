@@ -24,19 +24,20 @@
               <!-- <van-cell is-link icon="gift" title="我收到的礼物" @click="showTime = true" /> -->
             </van-collapse-item>
             <van-collapse-item title="用车信息" name="2">
-              <van-field v-model="sendData.title" label="标题" />
+              <van-field v-model="sendData.title" label="标题" disabled/>
               <van-cell is-link title="用车部门" @click="showSelectPopup(1)" :value="sendData.use_dept_name" />
               <van-field v-model="sendData.use_num" label="用车数量" type="number" placeholder="请输入数字"/>
               <van-field v-model="sendData.number" label="乘车人数" type="number" placeholder="请输入数字"/>
               <van-field v-model="sendData.start_place" label="出发地点" placeholder="请输入出发地址" />
               <van-field v-model="sendData.end_place" label="到达地点" placeholder="请输入到达地址" />
-              <van-cell is-link :value="sendData.use_person_name" title="用车人" @click="showSelectPopup(4)" />
+              <van-cell is-link :value="sendData.use_people_name" title="用车人" @click="showSelectPopup(4)" />
               <van-cell is-link :value="useTypeS" @click="showCarType = true" title="用车类型" placeholder="请选择用车类型" center/>
               <van-cell is-link :value="carTypeS" @click="showSendType = true" title="派车类型" placeholder="请选择派车类型" center/>
               <van-field v-model="sendData.use_phone" label="用车电话" placeholder="请输入手机号码"/>
               <van-cell title="派车信息">
                 <slot>
-                  <span class="my-tag pr-2" v-for="time in timeMath"  @click="handleTimeClose(time)">{{time.begin}}<br> {{time.end}}<van-icon name="close" class="tag-close my-Mestag" /></span>
+                  &nbsp;
+                  <span class="my-tag pr-2" v-for="time in sendData.dispatching_info"  @click="handleTimeClose(time)">{{time.begin}}<br> {{time.end}}<van-icon name="close" class="tag-close my-Mestag" /></span>
                 </slot>
                 <van-icon @click="showTime = true" slot="right-icon" name="add-o" class="van-cell__right-icon tag-add" />      
               </van-cell>
@@ -121,21 +122,22 @@
     <van-popup v-model="show" class="bm-search" position="right" :overlay="false">
       <div class="pop-fix">
         <van-nav-bar
-          title="标题"
+          title="请选择"
           left-arrow
           @click-left="show = false"
         />
-        <form action="/">
+        <form action="/"  style="height:45px;background-color:#fff;">
           <van-search
-            v-model="value"
+            v-if="showPeople"
+            v-model="searchValue"
             placeholder="搜索"
             show-action
-            @search="onSearch"
-            @cancel="onCancel"
+            @search="onSearch(searchValue)"
+            @cancel="onSearchCancel()"
           />
         </form>
         <div class="popup-nav">
-          <ul>
+          <ul v-if="bmhide">
             <li v-for="(item, index) in navList" :key="item.mdm_pk" @click="navClick(item, index)"><van-icon v-if="index > 0" class="rbt" name="arrow" /> {{item.name}}</li>
           </ul>
         </div>
@@ -156,8 +158,8 @@
         </van-radio-group>
       </div>
 
-      <div v-if="showPeople" class="sebm-radio andPeople">
-          <van-cell-group >
+      <div v-if="showPeople" class="sebm-radio andPeople" :class="{'search': !bmhide}">
+          <van-cell-group v-if="bmhide">
             <van-cell v-for="(item, index) in selectType.dept" :key="item.id" :value="item.name">
               <van-icon slot="right-icon" class="rbt" name="wap-nav" info="下级"  @click="levelClick(item)" />
             </van-cell>
@@ -168,6 +170,7 @@
               <van-cell v-for="item2 in selectType.person" >
                 <van-checkbox :name="item2">
                   <p>{{item2.name}}</p>
+                  <p>{{item2.address}}</p>
                 </van-checkbox>
               </van-cell>
             </van-cell-group>
@@ -178,10 +181,13 @@
               <van-cell v-for="item2 in selectType.person" >
                 <van-radio :name="item2">
                   <p>{{item2.name}}</p>
+                  <p>{{item2.address}}</p>
                 </van-radio>
               </van-cell>
             </van-cell-group>
           </van-radio-group>
+
+
           <div v-if="showLoading" class="loading">
             <van-loading  type="spinner" color="black" />
           </div>
@@ -224,6 +230,7 @@ export default {
       value: '',
       active: 0,
       activeNames: ['1'],
+      searchValue: '',
       BM: {},
       PE: {},
       showTime: false,
@@ -234,6 +241,7 @@ export default {
       show: false,
       showBM: false,
       showPeople: true,
+      bmhide: true,
       message: '',
       radio: '1',
       currentDate: new Date(),
@@ -244,7 +252,8 @@ export default {
         person: '',
         dept: '',
         center: '',
-        time: ''
+        time: '',
+        title: ''
       },
       sendData: {
         title: '',
@@ -255,7 +264,7 @@ export default {
         end_place: '',
         use_phone: '',
         use_people: '',
-        use_person_name: '',
+        use_people_name: '',
         use_type: '',
         send_type: '',
         use_reason: '',
@@ -267,6 +276,7 @@ export default {
         copy_user: [],
         use_dept_name: '',
         dispatch_user: [],
+        dispatching_info: [],
         apply_dept_user: [{
           name: ''
         }]
@@ -340,7 +350,7 @@ export default {
       }
     },
     handleTimeClose(time) {
-      this.timeMath.splice(this.timeMath.indexOf(time), 1);
+      this.sendData.dispatching_info.splice(this.sendData.dispatching_info.indexOf(time), 1);
     },
     levelClick(item) {
       this.navList.push(item);
@@ -365,7 +375,6 @@ export default {
       this.selectedList.push(item);
     },
     finalClick() {
-      console.log(this.dataID);
       if (this.dataID && this.dataID === 1) {
         this.sendData.use_dept = this.selectedList[0].mdm_code;
         this.sendData.use_dept_name = this.selectedList[0].name;
@@ -373,14 +382,14 @@ export default {
         this.sendData.apply_dept_user = this.selectedList[0].mdm_code;
         this.bmPeople = this.selectedList[0].name;
       } else if (this.dataID && this.dataID === 4) {
-        this.sendData.use_person_name = this.selectedList[0].name;
+        this.sendData.use_people_name = this.selectedList[0].name;
         this.sendData.use_people = this.selectedList[0].mdm_code;
       } else if (this.dataID && this.dataID === 5) {
         this.sendData.dispatch_user = this.selectedList;
       } else if (this.dataID && this.dataID === 3) {
         this.sendData.copy_user = this.selectedList;
       }
-      console.log(this.selectedList);
+      this.bmhide = false;
       this.show = false;
     },
     showSelectPopup(id) {
@@ -417,6 +426,7 @@ export default {
         }
       }).then(response => {
         this.getMes = response.data;
+        this.sendData.title = this.getMes.title;
       }).catch(() => {
       });
     },
@@ -457,8 +467,22 @@ export default {
       }).catch(() => {
       });
     },
-    onSearch() {
-      console.log(11);
+    onSearch(mes) {
+      this.bmhide = false;
+      this.showLoading = true;
+      this.$axios.get('http://carsadmin.iyunfish.cn/apply/search', {
+        params: {
+          name: mes
+        }
+      }).then(response => {
+        this.selectType.person = response.data;
+        this.showLoading = false;
+      }).catch(() => {
+      });
+    },
+    onSearchCancel() {
+      this.bmhide = true;
+      this.showSelectPopup(this.dataID);
     },
     onConfirm(value, index) {
       Toast(`当前值：${value}, 当前索引：${index}`);
@@ -483,8 +507,7 @@ export default {
     },
     onAreaConfirm2() {
       this.timeItem.end = this.formatDate(this.currentDate2, 'yyyy-MM-dd hh:mm');
-      this.timeMath.push(this.timeItem);
-      console.log(this.timeMath);
+      this.sendData.dispatching_info.push(this.timeItem);
       this.showTime2 = false;
     },
     formatDate(date, fmt) {
@@ -676,5 +699,25 @@ export default {
 .bot-btn {
   background-color: #2486a5;
   margin: 20px 0;
+}
+.van-collapse-item__title .van-cell__value {
+  color:#000;
+  font-size: 16px;
+}
+.search .van-radio__input {
+  position: absolute;
+  top: 50%;
+  margin-top: -10px;
+  height: 20px;
+}
+.search .van-radio__label {
+  line-height: 20px;
+  margin-left: 30px;
+  padding-left: 30px;
+  display: table-cell;
+}
+.search .van-radio__label .p2 {
+  font-size: 12px;
+  color: #808080;
 }
 </style>
