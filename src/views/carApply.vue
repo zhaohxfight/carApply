@@ -10,16 +10,16 @@
     />
     <div class="content">
       <van-cell-group class="item-list">
-        <van-cell is-link  title="派车申请" @click="$router.push('dispatchApply')"/>
+        <van-cell is-link :value="value" title="派车申请" @click="$router.push('dispatchApply')"/>
       </van-cell-group>
       <van-cell-group class="item-list">
-        <van-cell is-link  title="车辆购置" />
+        <van-cell is-link :value="value" title="车辆购置" />
       </van-cell-group>
       <van-cell-group class="item-list">
-        <van-cell is-link  title="车辆调拨" />
+        <van-cell is-link :value="value" title="车辆调拨" />
       </van-cell-group>
       <van-cell-group class="item-list">
-        <van-cell is-link  title="车辆处置" />
+        <van-cell is-link :value="value" title="车辆处置" />
       </van-cell-group>
     </div>
   </div>
@@ -33,6 +33,11 @@ export default {
     [Cell.name]: Cell,
     [CellGroup.name]: CellGroup,
     [Icon.name]: Icon
+  },
+  data() {
+    return {
+      value: ''
+    };
   },
   methods: {
     onClickLeft() {

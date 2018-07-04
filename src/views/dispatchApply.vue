@@ -1,5 +1,5 @@
 <template>
-  <div id="carApply">
+  <div id="dispatchApply">
     <van-nav-bar
     title="派车申请"
     left-text="返回"
@@ -426,7 +426,7 @@ export default {
         }
       }).then(response => {
         this.getMes = response.data;
-        this.sendData.title = this.getMes.title;
+        this.sendData.title = this.getMes.title + '派车申请';
       }).catch(() => {
       });
     },
