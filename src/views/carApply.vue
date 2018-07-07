@@ -13,13 +13,13 @@
         <van-cell is-link :value="value" title="派车申请" @click="$router.push('dispatchApply')"/>
       </van-cell-group>
       <van-cell-group class="item-list">
-        <van-cell is-link :value="value" title="车辆购置" />
+        <van-cell is-link :value="value" title="车辆购置" @click="$router.push('carPurchase')"/>
       </van-cell-group>
       <van-cell-group class="item-list">
-        <van-cell is-link :value="value" title="车辆调拨" />
+        <van-cell is-link :value="value" title="车辆调拨" @click="$router.push('carTransfer')" />
       </van-cell-group>
       <van-cell-group class="item-list">
-        <van-cell is-link :value="value" title="车辆处置" />
+        <van-cell is-link :value="value" title="车辆处置" @click="$router.push('carDisposal')"/>
       </van-cell-group>
     </div>
   </div>

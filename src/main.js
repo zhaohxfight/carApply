@@ -11,6 +11,10 @@ Vue.prototype.baseUrl = '';
 
 const carApply = () => import('@/views/carApply.vue');
 const dispatchApply = () => import('@/views/dispatchApply.vue');
+const carPurchase = () => import('@/views/carPurchase.vue');
+const carDisposal = () => import('@/views/carDisposal.vue');
+const carTransfer = () => import('@/views/carTransfer.vue');
+const success = () => import('@/views/success.vue');
 
 const router = new Router({
   // scrollBehavior: () => ({ y: 0 }),
@@ -25,6 +29,26 @@ const router = new Router({
       path: '/dispatchApply',
       name: 'dispatchApply',
       component: dispatchApply
+    },
+    {
+      path: '/carPurchase',
+      name: 'carPurchase',
+      component: carPurchase
+    },
+    {
+      path: '/carDisposal',
+      name: 'carDisposal',
+      component: carDisposal
+    },
+    {
+      path: '/carTransfer',
+      name: 'carTransfer',
+      component: carTransfer
+    },
+    {
+      path: '/success',
+      name: 'success',
+      component: success
     }
   ]
 });

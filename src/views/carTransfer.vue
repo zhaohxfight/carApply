@@ -1,7 +1,7 @@
 <template>
   <div id="dispatchApply">
     <van-nav-bar
-    title="派车申请"
+    title="车辆调拨"
     left-text="返回"
     right-text="关闭"
     left-arrow
@@ -16,50 +16,39 @@
         </div>
         <div class="content">
           <van-collapse v-model="activeNames">
-            <van-collapse-item title="申请人信息" name="1"> 
-              <van-field v-model="getMes.person" label="发起人"  disabled />
-              <van-field v-model="getMes.time" label="发起时间" disabled  />
-              <van-field v-model="getMes.dept" label="所属组织"  disabled />
-              <van-field v-model="getMes.center" label="区域/中心"  disabled />
-              <!-- <van-cell is-link icon="gift" title="我收到的礼物" @click="showTime = true" /> -->
-            </van-collapse-item>
-            <van-collapse-item title="用车信息" name="2">
+            <van-collapse-item title="基本信息" name="1"> 
               <van-field v-model="sendData.title" label="标题" disabled/>
-              <van-cell is-link title="用车部门" @click="showSelectPopup(1)" :value="sendData.use_dept_name" />
-              <van-field v-model="sendData.use_num" label="用车数量" type="number" placeholder="请输入数字"/>
-              <van-field v-model="sendData.number" label="乘车人数" type="number" placeholder="请输入数字"/>
-              <van-field v-model="sendData.start_place" label="出发地点" placeholder="请输入出发地址" />
-              <van-field v-model="sendData.end_place" label="到达地点" placeholder="请输入到达地址" />
-              <van-cell is-link :value="sendData.use_people_name" title="用车人" @click="showSelectPopup(4)" />
-              <van-cell is-link :value="useTypeS" @click="showCarType = true" title="用车类型" placeholder="请选择用车类型" center/>
-              <van-cell is-link :value="carTypeS" @click="showSendType = true" title="派车类型" placeholder="请选择派车类型" center/>
-              <van-field v-model="sendData.use_phone" label="用车电话" placeholder="请输入手机号码"/>
-              <van-cell title="派车信息">
-                <slot>
-                  &nbsp;
-                  <span class="my-tag pr-2" v-for="time in sendData.dispatching_info"  @click="handleTimeClose(time)">{{time.begin}}<br> {{time.end}}<van-icon name="close" class="tag-close my-Mestag" /></span>
-                </slot>
-                <van-icon @click="showTime = true" slot="right-icon" name="add-o" class="van-cell__right-icon tag-add" />      
-              </van-cell>
-              <van-field v-model="sendData.use_reason" label="用车事由" placeholder="请输入车辆使用原因" />
-              <van-field v-model="sendData.memo" label="备注" placeholder="请输入备注信息" />
+              <van-cell is-link title="车牌号" :value="sendData.plate_num" @click="showCarSelectPopup()"/>
+              <van-field v-model="sendData.brand" label="厂牌型号" placeholder="请输入规格型号"/>
+              <van-field v-model="sendData.car_master" label="车主姓名" placeholder="请输车主姓名"/>
+              <van-field v-model="sendData.engine" label="发动机号" placeholder="请输入发动机型号"/>
+              <van-cell is-link :value="sendData.register_time" @click="showTime = true" title="登记日期" placeholder="请选择注册登记日期" />
+              <van-field v-model="sendData.carriage_num" label="车架号码" placeholder="请输入车架号码"/>
             </van-collapse-item>
-
-            <van-collapse-item title="审批信息" name="3">
-              <van-field label="审批人" type="number" placeholder="审批人已由系统设置" disabled/>
-              <van-cell is-link title="部门负责人" :value="bmPeople" @click="showSelectPopup(2)" />
-              <van-cell v-model="message" title="车辆调度" >
-                <slot>
-                  <span class="my-tag pr-2" v-for="tag in sendData.dispatch_user"  @click="handleClose(tag, 1)">{{tag.name}}<van-icon name="close" class="tag-close my-Mestag" /></span>
-                </slot>
-                <van-icon  slot="right-icon" name="add-o" class="van-cell__right-icon tag-add" @click="showSelectPopup(5)" />
-              </van-cell>
-              <van-cell v-model="message" title="抄送人">
-                <slot>
-                  <span class="my-tag pr-2" v-for="tag in sendData.copy_user"  @click="handleClose(tag, 2)">{{tag.name}} <van-icon name="close" class="tag-close my-Mestag" /></span>
-                </slot>
-                <van-icon  slot="right-icon" name="add-o" class="van-cell__right-icon tag-add" @click="showSelectPopup(3)" />      
-              </van-cell>
+            <van-collapse-item title="车辆状况" name="2">
+              <van-cell is-link :value="sendData.driving | statusTypeFilter" @click="clickshowif(1)" title="行驶证" />
+              <van-cell is-link :value="sendData.prove | statusTypeFilter" @click="clickshowif(2)" title="购置税证明" />
+              <van-cell is-link :value="sendData.register | statusTypeFilter" @click="clickshowif(3)" title="登记卡" />
+              <van-cell is-link :value="sendData.insurance | statusTypeFilter" @click="clickshowif(4)" title="保险卡" />
+              <van-cell is-link :value="sendData.insurance_sign | statusTypeFilter" @click="clickshowif(5)" title="保险标志" />
+              <van-cell is-link :value="sendData.protection_sign | statusTypeFilter" @click="clickshowif(6)" title="环保标志" />
+              <van-cell is-link :value="sendData.annual_sign | statusTypeFilter" @click="clickshowif(7)" title="年审标志" />
+              <van-cell is-link :value="sendData.annual_ticket | statusTypeFilter" @click="clickshowif(8)" title="年票" />
+              <van-cell is-link :value="sendData.exhaust | statusTypeFilter" @click="clickshowif(9)" title="废气证" />
+              <van-cell is-link :value="sendData.use_tax | statusTypeFilter" @click="clickshowif(10)" title="车船使用税" />
+              <van-cell is-link :value="sendData.lock | statusTypeFilter" @click="clickshowif(11)" title="防盗锁" />
+              <van-cell is-link :value="sendData.spare_tire  | statusTypeFilter" @click="clickshowif(12)" title="备用胎" />
+              <van-field v-model="sendData.glass_condition" label="玻璃情况" placeholder="请输入玻璃情况"/>
+              <van-field v-model="sendData.car_condition" label="车身情况" placeholder="请输入车身情况"/>
+              <van-cell is-link :value="sendData.car_tool  | statusTypeFilter" @click="clickshowif(13)" title="附车工具" />
+              <van-cell is-link :value="sendData.danger_sign  | statusTypeFilter" @click="clickshowif(14)" title="危险标志" />
+              <van-field v-model="sendData.travel" label="行程里数" placeholder="请输入车辆行程里数"/>
+              <van-field v-model="sendData.carloss" label="车身情况" placeholder="请输入车身情况"/>
+              <van-field v-model="sendData.memo" label="备注说明"  rows="2" autosize/>
+            </van-collapse-item>
+            <van-collapse-item title="拨调信息" name="3">
+              <van-field v-model="sendData.out_dept" label="调出部门" placeholder="请输入调出部门"/>
+              <van-cell  :value="sendData.in_dept_name" is-link title="调入部门" @click="showSelectPopup(1)" />
             </van-collapse-item>
           </van-collapse>
         </div>
@@ -79,46 +68,14 @@
     </van-tabs>
     <van-popup v-model="showTime" position="bottom" :lazy-render="false" >
       <van-datetime-picker
-        type="datetime"
-        title="选择开始时间"
+        type="date"
+        title="选择日期"
          v-model="currentDate"
-        :min-date="minDate"
-        :max-date="maxDate"
         @confirm="onAreaConfirm"
         @cancel="showTime = false"
       />
     </van-popup>
-    <van-popup v-model="showTime2" position="bottom" :lazy-render="false" >
-      <van-datetime-picker
-        type="datetime"
-        title="选择结束时间"
-         v-model="currentDate2"
-        :min-date="currentDate"
-        :max-date="maxDate"
-        @confirm="onAreaConfirm2"
-        @cancel="showTime2 = false"
-      />
-    </van-popup>
-    <van-popup v-model="showCarType" position="bottom" :lazy-render="false" >
-      <van-picker
-        show-toolbar
-        value-key="name"
-        title="请选择用车类型"
-        :columns="carType"
-        @cancel="showCarType = false"
-        @confirm="carTypeonConfirm"
-      />
-    </van-popup>
-    <van-popup v-model="showSendType" position="bottom" :lazy-render="false" >
-      <van-picker
-        show-toolbar
-        value-key="name"
-        title="请选择派车类型"
-        :columns="sendType"
-        @cancel="showSendType = false"
-        @confirm="sendTypeonConfirm"
-      />
-    </van-popup>
+    <van-actionsheet v-model="showif" :actions="actions" />
     <van-popup v-model="show" class="bm-search" position="right" :overlay="false">
       <div class="pop-fix">
         <van-nav-bar
@@ -198,11 +155,52 @@
         </van-cell>
       </div>
     </van-popup>
+
+    <van-popup v-model="showCarNum" class="bm-search" position="right" :overlay="false">
+      <div class="pop-fix">
+        <van-nav-bar
+          title="请选择"
+          left-arrow
+          @click-left="show = false"
+        />
+        <form action="/"  style="height:45px;background-color:#fff;">
+          <van-search
+            v-model="searchValue"
+            placeholder="搜索"
+            show-action
+            @search="getSelectData(searchValue)"
+            @cancel="onSearchCancel()"
+          />
+        </form>
+        <div class="popup-nav">
+        </div>
+      </div>
+      <div  class="sebm-radio andPeople carse" :class="{'search': !bmhide}">
+        <van-radio-group  v-model="PE" class="peopleS">
+          <van-cell-group>
+            <van-cell v-for="item2 in carSelectType" >
+              <van-radio :name="item2">
+                <p>{{item2.brand}}</p>
+                <p>{{item2.plate_num}}</p>
+              </van-radio>
+            </van-cell>
+          </van-cell-group>
+        </van-radio-group>
+      </div>
+      <div v-if="showLoading" class="loading">
+        <van-loading  type="spinner" color="black" />
+      </div>
+      <div class="nav-bot">
+        <van-cell title="已选择:" :value="selectedList.length" is-link>
+          <van-button slot="right-icon" size="small" type="primary" @click="carfinalClick()">确定</van-button>
+        </van-cell>
+      </div>
+    </van-popup>
   </div>
 </template>
 
 <script>
-import { Cell, CellGroup, Icon, Toast, Tab, Tabs, Collapse, CollapseItem, Field, Popup, Picker, DatetimePicker, Search, RadioGroup, Radio, Loading, Button, Checkbox, CheckboxGroup } from 'vant';
+import { Cell, CellGroup, Icon, Toast, Tab, Tabs, Collapse, CollapseItem, Field, Popup, Picker, DatetimePicker, Search, RadioGroup, Radio, Loading, Button, Checkbox, CheckboxGroup, Actionsheet } from 'vant';
 
 export default {
   components: {
@@ -223,7 +221,8 @@ export default {
     [Button.name]: Button,
     [Loading.name]: Loading,
     [Checkbox.name]: Checkbox,
-    [CheckboxGroup.name]: CheckboxGroup
+    [CheckboxGroup.name]: CheckboxGroup,
+    [Actionsheet.name]: Actionsheet
   },
   data() {
     return {
@@ -234,6 +233,8 @@ export default {
       BM: {},
       PE: {},
       showTime: false,
+      showif: false,
+      showCarNum: false,
       showTime2: false,
       showCarType: false,
       showSendType: false,
@@ -242,12 +243,25 @@ export default {
       showBM: false,
       showPeople: true,
       bmhide: true,
+      ifNumber: 0,
       message: '',
       radio: '1',
       currentDate: new Date(),
       currentDate2: new Date(),
       minDate: new Date(),
       maxDate: new Date(2019, 10, 1),
+      actions: [
+        {
+          name: '有',
+          value: 1,
+          callback: this.onClickIf
+        },
+        {
+          name: '无',
+          value: 2,
+          callback: this.onClickIf
+        }
+      ],
       getMes: {
         person: '',
         dept: '',
@@ -257,47 +271,30 @@ export default {
       },
       sendData: {
         title: '',
-        use_dept: '',
-        use_num: '',
-        number: '',
-        start_place: '',
-        end_place: '',
-        use_phone: '',
-        use_people: '',
-        use_people_name: '',
-        use_type: '',
-        send_type: '',
-        use_reason: '',
-        trip: '',
-        eip: '',
-        memo: '',
-        start_time: '',
-        end_time: '',
-        copy_user: [],
-        use_dept_name: '',
-        dispatch_user: [],
-        dispatching_info: [],
-        apply_dept_user: [{
-          name: ''
-        }]
+        plate_num: ' ',
+        register_time: ' ',
+        driving: ' ',
+        prove: ' ',
+        register: ' ',
+        insurance: ' ',
+        insurance_sign: ' ',
+        protection_sign: ' ',
+        annual_sign: ' ',
+        annual_ticket: ' ',
+        exhaust: ' ',
+        use_tax: ' ',
+        lock: ' ',
+        spare_tire: ' ',
+        car_tool: ' ',
+        danger_sign: ' ',
+        in_dept_name: ' '
       },
       useTypeS: '',
       carTypeS: '',
       timeMath: [],
       timeItem: {},
-      dynamicTags: [{
-        name: '2018-02-16 19:00'
-      }, {
-        name: '王小小'
-      }, {
-        name: '王小小'
-      }, {
-        name: '王小小'
-      }, {
-        name: '王小小'
-      }],
-      columns: ['杭州', '宁波', '温州', '嘉兴', '湖州'],
       carType: [],
+      carSelectType: [],
       sendType: [{
         name: '一般派车',
         value: 1
@@ -324,10 +321,21 @@ export default {
       bmPeople: ''
     };
   },
+  filters: {
+    statusTypeFilter(status) {
+      const statusMap = {
+        '1': '有',
+        '2': '无'
+      };
+      if (status === ' ') {
+        return ' ';
+      } else {
+        return statusMap[status];
+      }
+    }
+  },
   created() {
     this.getBaseData();
-    this.getCarData();
-    // this.getSelectData();
   },
   methods: {
     onClickLeft() {
@@ -335,6 +343,10 @@ export default {
     },
     onClickRight() {
       Toast('按钮');
+    },
+    clickshowif(id) {
+      this.ifNumber = id;
+      this.showif = true;
     },
     handleClose(tag, id) {
       if (id === 1) {
@@ -368,23 +380,54 @@ export default {
       this.selectedList = [];
       this.selectedList.push(item);
     },
+    onClickIf(item) {
+      if (this.ifNumber && this.ifNumber !== 0) {
+        if (this.ifNumber === 1) {
+          this.sendData.driving = item.value;
+        } else if (this.ifNumber === 2) {
+          this.sendData.prove = item.value;
+        } else if (this.ifNumber === 3) {
+          this.sendData.register = item.value;
+        } else if (this.ifNumber === 4) {
+          this.sendData.insurance = item.value;
+        } else if (this.ifNumber === 5) {
+          this.sendData.insurance_sign = item.value;
+        } else if (this.ifNumber === 6) {
+          this.sendData.protection_sign = item.value;
+        } else if (this.ifNumber === 7) {
+          this.sendData.annual_sign = item.value;
+        } else if (this.ifNumber === 8) {
+          this.sendData.annual_ticket = item.value;
+        } else if (this.ifNumber === 9) {
+          this.sendData.exhaust = item.value;
+        } else if (this.ifNumber === 10) {
+          this.sendData.use_tax = item.value;
+        } else if (this.ifNumber === 11) {
+          this.sendData.lock = item.value;
+        } else if (this.ifNumber === 12) {
+          this.sendData.spare_tire = item.value;
+        } else if (this.ifNumber === 13) {
+          this.sendData.car_tool = item.value;
+        } else if (this.ifNumber === 14) {
+          this.sendData.danger_sign = item.value;
+        }
+      }
+      this.ifNumber = 0;
+      this.showif = false;
+    },
     finalClick() {
       if (this.dataID && this.dataID === 1) {
-        this.sendData.use_dept = this.selectedList[0].mdm_code;
-        this.sendData.use_dept_name = this.selectedList[0].name;
-      } else if (this.dataID && this.dataID === 2) {
-        this.sendData.apply_dept_user = this.selectedList[0].mdm_code;
-        this.bmPeople = this.selectedList[0].name;
-      } else if (this.dataID && this.dataID === 4) {
-        this.sendData.use_people_name = this.selectedList[0].name;
-        this.sendData.use_people = this.selectedList[0].mdm_code;
-      } else if (this.dataID && this.dataID === 5) {
-        this.sendData.dispatch_user = this.selectedList;
-      } else if (this.dataID && this.dataID === 3) {
-        this.sendData.copy_user = this.selectedList;
+        this.sendData.in_dept = this.selectedList[0].mdm_code;
+        this.sendData.in_dept_name = this.selectedList[0].name;
       }
       this.bmhide = false;
       this.show = false;
+    },
+    carfinalClick() {
+      this.sendData.car_id = this.selectedList[0].id;
+      this.sendData.plate_num = this.selectedList[0].plate_num;
+      this.sendData.brand = this.selectedList[0].brand;
+      this.showCarNum = false;
     },
     showSelectPopup(id) {
       this.dataID = id;
@@ -414,23 +457,31 @@ export default {
       }
       this.show = true;
     },
+    showCarSelectPopup() {
+      this.carSelectType = [];
+      this.getCarData();
+      this.showCarNum = true;
+    },
     getBaseData() {
       this.$axios.get('http://carsadmin.iyunfish.cn/apply/getuser', {
         params: {
         }
       }).then(response => {
         this.getMes = response.data;
-        this.sendData.title = this.getMes.title + '派车申请';
+        this.sendData.title = this.getMes.title + '车辆拨调';
       }).catch(() => {
       });
     },
-    getCarData() {
-      this.$axios.get('http://carsadmin.iyunfish.cn/apply/dictionary', {
+    getCarData(mes) {
+      this.showLoading = true;
+      this.$axios.get('http://carsadmin.iyunfish.cn/apply/cars', {
         params: {
-          type: 'use_type'
+          plate_num: mes
         }
       }).then(response => {
-        this.carType = response.data.use_type;
+        console.log(response.data);
+        this.carSelectType = response.data;
+        this.showLoading = false;
       }).catch(() => {
       });
     },
@@ -450,9 +501,8 @@ export default {
     },
     sendMethod() {
       console.log(this.sendData);
-      this.$axios.post('http://carsadmin.iyunfish.cn//apply/sendcarsave', this.sendData)
+      this.$axios.post('http://carsadmin.iyunfish.cn//apply/allocation', this.sendData)
       .then(response => {
-        console.log(response.data);
         if (response.data.success) {
           Toast.success(response.data.msg);
         } else {
@@ -628,6 +678,9 @@ export default {
 }
 .van-radio__label {
   line-height: 5px;
+}
+.carse .van-radio__label {
+  line-height: 20px;
 }
 .van-radio .van-icon-checked {
   color: #2486a5;
