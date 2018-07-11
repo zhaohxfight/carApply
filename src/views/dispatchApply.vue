@@ -24,16 +24,16 @@
               <!-- <van-cell is-link icon="gift" title="我收到的礼物" @click="showTime = true" /> -->
             </van-collapse-item>
             <van-collapse-item title="用车信息" name="2">
-              <van-field v-model="sendData.title" label="标题" disabled/>
-              <van-cell is-link title="用车部门" @click="showSelectPopup(1)" :value="sendData.use_dept_name" />
-              <van-field v-model="sendData.use_num" label="用车数量" type="number" placeholder="请输入数字"/>
-              <van-field v-model="sendData.number" label="乘车人数" type="number" placeholder="请输入数字"/>
-              <van-field v-model="sendData.start_place" label="出发地点" placeholder="请输入出发地址" />
-              <van-field v-model="sendData.end_place" label="到达地点" placeholder="请输入到达地址" />
-              <van-cell is-link :value="sendData.use_people_name" title="用车人" @click="showSelectPopup(4)" />
-              <van-cell is-link :value="useTypeS" @click="showCarType = true" title="用车类型" placeholder="请选择用车类型" center/>
-              <van-cell is-link :value="carTypeS" @click="showSendType = true" title="派车类型" placeholder="请选择派车类型" center/>
-              <van-field v-model="sendData.use_phone" label="用车电话" placeholder="请输入手机号码"/>
+              <van-field v-model="sendData.title" label="标题" disabled required/>
+              <van-cell is-link title="用车部门" @click="showSelectPopup(1)" :value="sendData.use_dept_name" required/>
+              <van-field v-model="sendData.use_num" label="用车数量" type="number" placeholder="请输入数字" required/>
+              <van-field v-model="sendData.number" label="乘车人数" type="number" placeholder="请输入数字" required/>
+              <van-field v-model="sendData.start_place" label="出发地点" placeholder="请输入出发地址" required/>
+              <van-field v-model="sendData.end_place" label="到达地点" placeholder="请输入到达地址" required />
+              <van-cell is-link :value="sendData.use_people_name" title="用车人" @click="showSelectPopup(4)" required/>
+              <van-cell is-link :value="useTypeS" @click="showCarType = true" title="用车类型" placeholder="请选择用车类型" center required/>
+              <van-cell is-link :value="carTypeS" @click="showSendType = true" title="派车类型" placeholder="请选择派车类型" center required/>
+              <van-field v-model="sendData.use_phone" label="用车电话" placeholder="请输入手机号码" required/>
               <van-cell title="派车信息">
                 <slot>
                   &nbsp;
@@ -41,19 +41,20 @@
                 </slot>
                 <van-icon @click="showTime = true" slot="right-icon" name="add-o" class="van-cell__right-icon tag-add" />      
               </van-cell>
+              <van-field v-model="sendData.trip" label="行程数据" placeholder="请输入车辆行程数据" />
               <van-field v-model="sendData.use_reason" label="用车事由" placeholder="请输入车辆使用原因" />
               <van-field v-model="sendData.memo" label="备注" placeholder="请输入备注信息" />
             </van-collapse-item>
 
             <van-collapse-item title="审批信息" name="3">
               <van-field label="审批人" type="number" placeholder="审批人已由系统设置" disabled/>
-              <van-cell is-link title="部门负责人" :value="bmPeople" @click="showSelectPopup(2)" />
-              <van-cell v-model="message" title="车辆调度" >
+              <van-cell is-link title="部门负责人" :value="bmPeople" @click="showSelectPopup(2)" required/>
+              <!-- <van-cell v-model="message" title="车辆调度" >
                 <slot>
                   <span class="my-tag pr-2" v-for="tag in sendData.dispatch_user"  @click="handleClose(tag, 1)">{{tag.name}}<van-icon name="close" class="tag-close my-Mestag" /></span>
                 </slot>
                 <van-icon  slot="right-icon" name="add-o" class="van-cell__right-icon tag-add" @click="showSelectPopup(5)" />
-              </van-cell>
+              </van-cell> -->
               <van-cell v-model="message" title="抄送人">
                 <slot>
                   <span class="my-tag pr-2" v-for="tag in sendData.copy_user"  @click="handleClose(tag, 2)">{{tag.name}} <van-icon name="close" class="tag-close my-Mestag" /></span>
@@ -170,7 +171,7 @@
               <van-cell v-for="item2 in selectType.person" >
                 <van-checkbox :name="item2">
                   <p>{{item2.name}}</p>
-                  <p>{{item2.address}}</p>
+                  <p class="p2">{{item2.address}}</p>
                 </van-checkbox>
               </van-cell>
             </van-cell-group>
@@ -181,7 +182,7 @@
               <van-cell v-for="item2 in selectType.person" >
                 <van-radio :name="item2">
                   <p>{{item2.name}}</p>
-                  <p>{{item2.address}}</p>
+                  <p class="p2">{{item2.address}}</p>
                 </van-radio>
               </van-cell>
             </van-cell-group>
@@ -396,6 +397,7 @@ export default {
       }];
       this.showBM = false;
       this.showPeople = false;
+      this.bmhide = true;
       if (id === 1) {
         this.showBM = true;
         this.getSelectData('');
@@ -425,9 +427,8 @@ export default {
       });
     },
     getCarData() {
-      this.$axios.get('http://carsadmin.iyunfish.cn/apply/dictionary', {
+      this.$axios.get(this.baseUrl + 'apply/dictionary', {
         params: {
-          type: 'use_type'
         }
       }).then(response => {
         this.carType = response.data.use_type;
@@ -436,7 +437,7 @@ export default {
     },
     getSelectData(id, ifp) {
       this.showLoading = true;
-      this.$axios.get('http://carsadmin.iyunfish.cn/apply/getframework', {
+      this.$axios.get(this.baseUrl + 'apply/getframework', {
         params: {
           mdm_pk: id,
           person: ifp
@@ -450,11 +451,11 @@ export default {
     },
     sendMethod() {
       console.log(this.sendData);
-      this.$axios.post('http://carsadmin.iyunfish.cn//apply/sendcarsave', this.sendData)
+      this.$axios.post(this.baseUrl + 'apply/sendcarsave', this.sendData)
       .then(response => {
         console.log(response.data);
         if (response.data.success) {
-          Toast.success(response.data.msg);
+          this.$router.push('/success');
         } else {
           Toast.fail(response.data.msg);
         }
@@ -464,7 +465,7 @@ export default {
     onSearch(mes) {
       this.bmhide = false;
       this.showLoading = true;
-      this.$axios.get('http://carsadmin.iyunfish.cn/apply/search', {
+      this.$axios.get(this.baseUrl + 'apply/search', {
         params: {
           name: mes
         }
@@ -698,20 +699,5 @@ export default {
   color:#000;
   font-size: 16px;
 }
-.search .van-radio__input {
-  position: absolute;
-  top: 50%;
-  margin-top: -10px;
-  height: 20px;
-}
-.search .van-radio__label {
-  line-height: 20px;
-  margin-left: 30px;
-  padding-left: 30px;
-  display: table-cell;
-}
-.search .van-radio__label .p2 {
-  font-size: 12px;
-  color: #808080;
-}
+
 </style>

@@ -17,13 +17,20 @@
         <div class="content">
           <van-collapse v-model="activeNames">
             <van-collapse-item title="购置信息" name="1">
-              <van-field v-model="sendData.title" label="标题" disabled/>
-              <van-cell is-link :value="danTypeS" @click="showDanType = true" title="紧急程度" placeholder="请选择紧急程度" />
-              <van-field v-model="sendData.tele" label="联系方式" placeholder="请输入发起人联系方式"/>
+              <van-field v-model="sendData.title" label="标题" disabled required/>
+              <van-cell is-link :value="danTypeS" @click="showDanType = true" title="紧急程度" placeholder="请选择紧急程度" required/>
+              <van-field v-model="sendData.tele" label="联系方式" placeholder="请输入发起人联系方式" required/>
               <van-field v-model="sendData.explain" label="备注" placeholder="购置说明"  rows="2" autosize/>
             </van-collapse-item>
             <van-collapse-item title="审批信息" name="2">
-              <van-cell is-link title="部门负责人" :value="bmPeople" @click="showSelectPopup(2)" />
+              <van-field label="审批人" type="number" placeholder="审批人已由系统设置" disabled/>
+              <van-cell is-link title="部门负责人" :value="bmPeople" @click="showSelectPopup(2)" required />
+              <van-cell v-model="message" title="抄送人">
+                <slot>
+                  <span class="my-tag pr-2" v-for="tag in sendData.copy_user"  @click="handleClose(tag, 2)">{{tag.name}} <van-icon name="close" class="tag-close my-Mestag" /></span>
+                </slot>
+                <van-icon  slot="right-icon" name="add-o" class="van-cell__right-icon tag-add" @click="showSelectPopup(3)" />      
+              </van-cell>
             </van-collapse-item>
           </van-collapse>
         </div>
@@ -60,6 +67,7 @@
         />
         <form action="/"  style="height:45px;background-color:#fff;">
           <van-search
+            v-if="showPeople"
             v-model="searchValue"
             placeholder="搜索"
             show-action
@@ -73,25 +81,55 @@
           </ul>
         </div>
       </div>
-      <div  class="sebm-radio andPeople" :class="{'search': !bmhide}">
-        <van-cell-group v-if="bmhide">
-          <van-cell v-for="(item, index) in selectType.dept" :key="item.id" :value="item.name">
-            <van-icon slot="right-icon" class="rbt" name="wap-nav" info="下级"  @click="levelClick(item)" />
-          </van-cell>
-        </van-cell-group>
-        <van-radio-group  v-model="PE" class="peopleS">
-          <van-cell-group>
-            <van-cell v-for="item2 in selectType.person" >
-              <van-radio :name="item2">
-                <p>{{item2.name}}</p>
-                <p>{{item2.address}}</p>
+      <div v-if="showBM" style="height:100%">
+        <van-radio-group v-model="BM" class="sebm-radio">
+          <van-cell-group >
+            <van-cell v-for="(item, index) in selectType.dept" :key="item.id" >
+              <van-radio :name="item">
+                <p >{{item.name}}</p>
               </van-radio>
+              <van-icon v-if="item.child && item.child === 1"  slot="right-icon" class="rbt" name="wap-nav" info="下级"  @click="levelClick(item)" />
             </van-cell>
           </van-cell-group>
+          <div v-if="showLoading" class="loading">
+            <van-loading  type="spinner" color="black" />
+          </div>
         </van-radio-group>
       </div>
-      <div v-if="showLoading" class="loading">
-        <van-loading  type="spinner" color="black" />
+
+      <div v-if="showPeople" class="sebm-radio andPeople" :class="{'search': !bmhide}">
+          <van-cell-group v-if="bmhide">
+            <van-cell v-for="(item, index) in selectType.dept" :key="item.id" :value="item.name">
+              <van-icon slot="right-icon" class="rbt" name="wap-nav" info="下级"  @click="levelClick(item)" />
+            </van-cell>
+          </van-cell-group>
+
+          <van-checkbox-group v-if="dataID === 3 || dataID === 5" v-model="selectedList" class="peopleS">
+            <van-cell-group>
+              <van-cell v-for="item2 in selectType.person" >
+                <van-checkbox :name="item2">
+                  <p>{{item2.name}}</p>
+                  <p class="p2">{{item2.address}}</p>
+                </van-checkbox>
+              </van-cell>
+            </van-cell-group>
+          </van-checkbox-group>
+
+          <van-radio-group v-if="dataID === 4 || dataID === 2" v-model="PE" class="peopleS">
+            <van-cell-group>
+              <van-cell v-for="item2 in selectType.person" >
+                <van-radio :name="item2">
+                  <p>{{item2.name}}</p>
+                  <p class="p2">{{item2.address}}</p>
+                </van-radio>
+              </van-cell>
+            </van-cell-group>
+          </van-radio-group>
+
+
+          <div v-if="showLoading" class="loading">
+            <van-loading  type="spinner" color="black" />
+          </div>
       </div>
       <div class="nav-bot">
         <van-cell title="已选择:" :value="selectedList.length" is-link>
@@ -132,6 +170,9 @@ export default {
       active: 0,
       show: false,
       bmhide: true,
+      showPeople: false,
+      showBM: false,
+      message: ' ',
       activeNames: ['1'],
       showLoading: false,
       searchValue: '',
@@ -155,7 +196,8 @@ export default {
       },
       getMes: {},
       sendData: {
-        title: ''
+        title: '',
+        copy_user: []
       }
     };
   },
@@ -178,12 +220,42 @@ export default {
         name: '全部'
       }];
       this.showBM = false;
-      this.getSelectData();
+      this.showPeople = false;
+      this.bmhide = true;
+      if (id === 1) {
+        this.showBM = true;
+        this.getSelectData('');
+      } else if (id === 2) {
+        this.showPeople = true;
+        this.getSelectData('', 1);
+      } else if (id === 3) {
+        this.showPeople = true;
+        this.getSelectData('', 1);
+      } else if (id === 4) {
+        this.showPeople = true;
+        this.getSelectData('', 1);
+      } else if (id === 5) {
+        this.showPeople = true;
+        this.getSelectData('', 1);
+      }
       this.show = true;
     },
     finalClick() {
-      this.sendData.apply_dept_user = this.selectedList[0].mdm_code;
-      this.bmPeople = this.selectedList[0].name;
+      if (this.dataID && this.dataID === 1) {
+        this.sendData.use_dept = this.selectedList[0].mdm_code;
+        this.sendData.use_dept_name = this.selectedList[0].name;
+      } else if (this.dataID && this.dataID === 2) {
+        this.sendData.apply_dept_user = this.selectedList[0].mdm_code;
+        this.bmPeople = this.selectedList[0].name;
+      } else if (this.dataID && this.dataID === 4) {
+        this.sendData.use_people_name = this.selectedList[0].name;
+        this.sendData.use_people = this.selectedList[0].mdm_code;
+      } else if (this.dataID && this.dataID === 5) {
+        this.sendData.dispatch_user = this.selectedList;
+      } else if (this.dataID && this.dataID === 3) {
+        this.sendData.copy_user = this.selectedList;
+      }
+      this.bmhide = false;
       this.show = false;
     },
     danTypeonConfirm(value, index) {
@@ -197,7 +269,7 @@ export default {
       this.getSelectData(item.mdm_pk);
     },
     getBaseData() {
-      this.$axios.get('http://carsadmin.iyunfish.cn/apply/getuser', {
+      this.$axios.get(this.baseUrl + 'apply/getuser', {
         params: {
         }
       }).then(response => {
@@ -208,7 +280,7 @@ export default {
     },
     getSelectData(id) {
       this.showLoading = true;
-      this.$axios.get('http://carsadmin.iyunfish.cn/apply/getframework', {
+      this.$axios.get(this.baseUrl + 'apply/getframework', {
         params: {
           mdm_pk: id,
           person: 1
@@ -223,7 +295,7 @@ export default {
     onSearch(mes) {
       this.bmhide = false;
       this.showLoading = true;
-      this.$axios.get('http://carsadmin.iyunfish.cn/apply/search', {
+      this.$axios.get(this.baseUrl + 'apply/search', {
         params: {
           name: mes
         }
@@ -233,13 +305,17 @@ export default {
       }).catch(() => {
       });
     },
+    onSearchCancel() {
+      this.bmhide = true;
+      this.showSelectPopup(this.dataID);
+    },
     sendMethod() {
       console.log(this.sendData);
-      this.$axios.post('http://carsadmin.iyunfish.cn/apply/purchase', this.sendData)
+      this.$axios.post(this.baseUrl + 'apply/purchase', this.sendData)
       .then(response => {
         console.log(response.data);
         if (response.data.success) {
-          Toast.success(response.data.msg);
+          this.$router.push('/success');
         } else {
           Toast.fail(response.data.msg);
         }

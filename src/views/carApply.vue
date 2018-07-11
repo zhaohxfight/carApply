@@ -26,12 +26,13 @@
 </template>
 
 <script>
-import { Cell, CellGroup, Icon, Toast } from 'vant';
+import { Cell, CellGroup, Icon, Toast, Dialog } from 'vant';
 
 export default {
   components: {
     [Cell.name]: Cell,
     [CellGroup.name]: CellGroup,
+    [Dialog.name]: Dialog,
     [Icon.name]: Icon
   },
   data() {
@@ -39,12 +40,33 @@ export default {
       value: ''
     };
   },
+  created() {
+    this.getBaseData();
+  },
   methods: {
     onClickLeft() {
       window.history.go(-1);
     },
     onClickRight() {
       Toast('按钮');
+    },
+    getBaseData() {
+      this.$axios.get(this.baseUrl + 'apply/getuser', {
+        params: {
+        }
+      }).then(response => {
+        if (response.data.person && response.data.person !== '') {
+
+        } else {
+          Dialog.alert({
+            title: '提示',
+            message: '未登录！请去登录'
+          }).then(() => {
+            // on close
+          });
+        };
+      }).catch(() => {
+      });
     }
   }
 };

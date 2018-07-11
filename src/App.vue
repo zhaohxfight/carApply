@@ -29,4 +29,20 @@ body {
 .content {
   padding: 20px 15px;
 }
+.search .van-radio__input, .search .van-checkbox__icon {
+  position: absolute;
+  top: 50%;
+  margin-top: -10px;
+  height: 20px;
+}
+.search .van-radio__label, .search .van-checkbox__label {
+  line-height: 20px;
+  margin-left: 30px;
+  padding-left: 30px;
+  display: table-cell;
+}
+.search .van-radio__label .p2 , .search .van-checkbox__label .p2 {
+  font-size: 12px;
+  color: #808080;
+}
 </style>

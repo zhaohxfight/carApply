@@ -17,20 +17,32 @@
         <div class="content">
           <van-collapse v-model="activeNames">
             <van-collapse-item title="处置信息" name="1">
-              <van-field v-model="sendData.title" label="标题" disabled/>
-              <van-cell is-link title="车牌号" :value="sendData.plate_num" @click="showSelectPopup()"/>
+              <van-field v-model="sendData.title" label="标题" disabled required/>
+              <van-cell is-link title="车牌号" :value="sendData.plate_num" @click="showSelectPopup()" required/>
               <van-field v-model="sendData.car_master" label="车主姓名" placeholder="请输车主姓名"/>
               <van-field v-model="sendData.use_dept" label="使用部门" placeholder="请输入使用部门"/>
               <van-field v-model="sendData.read_num" label="车辆识别号" placeholder="请输入车辆识别号"/>
-              <van-cell is-link :value="sendData.handle_time" @click="showTime = true" title="登记日期" placeholder="请选择注册登记日期" />
+              <van-cell is-link :value="sendData.register_time" @click="showTime = true" title="登记日期" placeholder="请选择注册登记日期" />
               <van-field v-model="sendData.engine" label="发动机号" placeholder="请输入发动机型号"/>
-              <van-field v-model="sendData.brand" label="规格型号" placeholder="请输入规格型号"/>
+              <van-field v-model="sendData.brand" label="规格型号" placeholder="请输入规格型号" disabled/>
               <van-field v-model="sendData.mileage" label="行驶里程" placeholder="请输入行驶里程"/>
-              <van-field v-model="sendData.nature" label="性质用途" placeholder="请输入性质用途"/>
-              <van-field v-model="sendData.partner" label="跟办人(电话)" placeholder="请输入跟办人电话"/>
-              <van-field v-model="sendData.mercy" label="处置目的" placeholder="请输入处置目的"/>
-              <van-field v-model="sendData.carloss" label="车辆损坏现状" placeholder="请输入车辆损坏现状"/>
+              <van-field v-model="sendData.nature" label="性质用途" placeholder="请输入性质用途" required/>
+              <van-cell is-link :value="sendData.handle_time" @click="showTime2 = true" title="处置日期" placeholder="请选择处置日期" required/>
+              <van-field v-model="sendData.attn" label="经办人" placeholder="请输入经办人" required/>
+              <van-field v-model="sendData.partner" label="跟办人(电话)" placeholder="请输入跟办人电话" required/>
+              <van-cell is-link :value="mercy" @click="showCarType = true" title="处置目的" required/>
+              <van-field v-model="sendData.carloss" label="车辆损坏现状" placeholder="请输入车辆损坏现状" required/>
               <van-field v-model="sendData.memo" label="备注说明" placeholder="处置说明"  rows="2" autosize/>
+            </van-collapse-item>
+            <van-collapse-item title="审批信息" name="3">
+              <van-field label="审批人" type="number" placeholder="审批人已由系统设置" disabled/>
+              <van-cell is-link title="部门负责人" :value="bmPeople" @click="showSelectPopupS(2)" required/>
+              <van-cell v-model="message" title="抄送人">
+                <slot>
+                  <span class="my-tag pr-2" v-for="tag in sendData.copy_user"  @click="handleClose(tag, 2)">{{tag.name}} <van-icon name="close" class="tag-close my-Mestag" /></span>
+                </slot>
+                <van-icon  slot="right-icon" name="add-o" class="van-cell__right-icon tag-add" @click="showSelectPopupS(3)" />      
+              </van-cell>
             </van-collapse-item>
           </van-collapse>
         </div>
@@ -54,6 +66,25 @@
          v-model="currentDate"
         @confirm="onAreaConfirm"
         @cancel="showTime = false"
+      />
+    </van-popup>
+    <van-popup v-model="showTime2" position="bottom" :lazy-render="false" >
+      <van-datetime-picker
+        type="date"
+        title="选择日期"
+         v-model="currentDate"
+        @confirm="onAreaConfirm2"
+        @cancel="showTime2 = false"
+      />
+    </van-popup>
+    <van-popup v-model="showCarType" position="bottom" :lazy-render="false" >
+      <van-picker
+        show-toolbar
+        value-key="name"
+        title="请选择用车类型"
+        :columns="carType"
+        @cancel="showCarType = false"
+        @confirm="carTypeonConfirm"
       />
     </van-popup>
     <van-popup v-model="show" class="bm-search" position="right" :overlay="false">
@@ -81,7 +112,7 @@
             <van-cell v-for="item2 in selectType" >
               <van-radio :name="item2">
                 <p>{{item2.brand}}</p>
-                <p>{{item2.plate_num}}</p>
+                <p class="p2">{{item2.plate_num}}</p>
               </van-radio>
             </van-cell>
           </van-cell-group>
@@ -93,6 +124,86 @@
       <div class="nav-bot">
         <van-cell title="已选择:" :value="selectedList.length" is-link>
           <van-button slot="right-icon" size="small" type="primary" @click="finalClick()">确定</van-button>
+        </van-cell>
+      </div>
+    </van-popup>
+
+    <van-popup v-model="showS" class="bm-search" position="right" :overlay="false">
+      <div class="pop-fix">
+        <van-nav-bar
+          title="请选择"
+          left-arrow
+          @click-left="showS = false"
+        />
+        <form action="/"  style="height:45px;background-color:#fff;">
+          <van-search
+            v-if="showPeople"
+            v-model="searchValue"
+            placeholder="搜索"
+            show-action
+            @search="onSearchS(searchValue)"
+            @cancel="onSearchCancelS()"
+          />
+        </form>
+        <div class="popup-nav">
+          <ul v-if="bmhide">
+            <li v-for="(item, index) in navList" :key="item.mdm_pk" @click="navClick(item, index)"><van-icon v-if="index > 0" class="rbt" name="arrow" /> {{item.name}}</li>
+          </ul>
+        </div>
+      </div>
+      <div v-if="showBM" style="height:100%">
+        <van-radio-group v-model="BM" class="sebm-radio">
+          <van-cell-group >
+            <van-cell v-for="(item, index) in selectType.dept" :key="item.id" >
+              <van-radio :name="item">
+                <p >{{item.name}}</p>
+              </van-radio>
+              <van-icon v-if="item.child && item.child === 1"  slot="right-icon" class="rbt" name="wap-nav" info="下级"  @click="levelClickS(item)" />
+            </van-cell>
+          </van-cell-group>
+          <div v-if="showLoading" class="loading">
+            <van-loading  type="spinner" color="black" />
+          </div>
+        </van-radio-group>
+      </div>
+
+      <div v-if="showPeople" class="sebm-radio andPeople" :class="{'search': !bmhide}">
+          <van-cell-group v-if="bmhide">
+            <van-cell v-for="(item, index) in selectType.dept" :key="item.id" :value="item.name">
+              <van-icon slot="right-icon" class="rbt" name="wap-nav" info="下级"  @click="levelClickS(item)" />
+            </van-cell>
+          </van-cell-group>
+
+          <van-checkbox-group v-if="dataID === 3 || dataID === 5" v-model="selectedList" class="peopleS">
+            <van-cell-group>
+              <van-cell v-for="item2 in selectType.person" >
+                <van-checkbox :name="item2">
+                  <p>{{item2.name}}</p>
+                  <p class="p2">{{item2.address}}</p>
+                </van-checkbox>
+              </van-cell>
+            </van-cell-group>
+          </van-checkbox-group>
+
+          <van-radio-group v-if="dataID === 4 || dataID === 2" v-model="PE" class="peopleS">
+            <van-cell-group>
+              <van-cell v-for="item2 in selectType.person" >
+                <van-radio :name="item2">
+                  <p>{{item2.name}}</p>
+                  <p class="p2">{{item2.address}}</p>
+                </van-radio>
+              </van-cell>
+            </van-cell-group>
+          </van-radio-group>
+
+
+          <div v-if="showLoading" class="loading">
+            <van-loading  type="spinner" color="black" />
+          </div>
+      </div>
+      <div class="nav-bot">
+        <van-cell title="已选择:" :value="selectedList.length" is-link>
+          <van-button slot="right-icon" size="small" type="primary" @click="finalClickS()">确定</van-button>
         </van-cell>
       </div>
     </van-popup>
@@ -128,12 +239,21 @@ export default {
       value: '',
       active: 0,
       show: false,
+      showS: false,
       bmhide: true,
       showTime: false,
+      showTime2: false,
+      showPeople: false,
+      showBM: false,
+      showCarType: false,
+      message: ' ',
       activeNames: ['1'],
       showLoading: false,
+      bmPeople: ' ',
       currentDate: new Date(),
       searchValue: '',
+      mercy: '',
+      carType: [],
       PE: {},
       navList: [],
       platenum: '',
@@ -155,12 +275,15 @@ export default {
       sendData: {
         title: '',
         plate_num: ' ',
-        handle_time: ' '
+        handle_time: ' ',
+        register_time: ' ',
+        copy_user: []
       }
     };
   },
   created() {
     this.getBaseData();
+    this.getCarData();
   },
   methods: {
     onClickLeft() {
@@ -173,11 +296,21 @@ export default {
       this.getSelectData();
     },
     onAreaConfirm() {
-      this.sendData.handle_time = this.formatDate(this.currentDate, 'yyyy-MM-dd');
+      this.sendData.register_time = this.formatDate(this.currentDate, 'yyyy-MM-dd');
       this.showTime = false;
     },
-    showSelectPopup(id) {
-      this.dataID = id;
+    onAreaConfirm2() {
+      this.sendData.handle_time = this.formatDate(this.currentDate, 'yyyy-MM-dd');
+      this.showTime2 = false;
+    },
+    handleClose(tag, id) {
+      if (id === 1) {
+        this.sendData.dispatch_user.splice(this.sendData.dispatch_user.indexOf(tag), 1);
+      } else {
+        this.sendData.copy_user.splice(this.sendData.copy_user.indexOf(tag), 1);
+      }
+    },
+    showSelectPopup() {
       this.selectedList = [];
       this.selectType = [];
       this.navList = [{
@@ -187,11 +320,77 @@ export default {
       this.getSelectData();
       this.show = true;
     },
+    showSelectPopupS(id) {
+      this.dataID = id;
+      this.selectedList = [];
+      this.selectType = {};
+      this.navList = [{
+        mdm_pk: '',
+        name: '全部'
+      }];
+      this.showBM = false;
+      this.showPeople = false;
+      this.bmhide = true;
+      if (id === 1) {
+        this.showBM = true;
+        this.getSelectDataS('');
+      } else if (id === 2) {
+        this.showPeople = true;
+        this.getSelectDataS('', 1);
+      } else if (id === 3) {
+        this.showPeople = true;
+        this.getSelectDataS('', 1);
+      } else if (id === 4) {
+        this.showPeople = true;
+        this.getSelectDataS('', 1);
+      } else if (id === 5) {
+        this.showPeople = true;
+        this.getSelectDataS('', 1);
+      }
+      this.showS = true;
+    },
+    getSelectDataS(id, ifp) {
+      this.showLoading = true;
+      this.$axios.get(this.baseUrl + 'apply/getframework', {
+        params: {
+          mdm_pk: id,
+          person: ifp
+        }
+      }).then(response => {
+        console.log(response.data);
+        this.selectType = response.data;
+        this.showLoading = false;
+      }).catch(() => {
+      });
+    },
     finalClick() {
       this.sendData.car_id = this.selectedList[0].id;
       this.sendData.plate_num = this.selectedList[0].plate_num;
       this.sendData.brand = this.selectedList[0].brand;
+      this.sendData.engine = this.selectedList[0].engine;
+      this.sendData.read_num = this.selectedList[0].carriage_num;
+      this.sendData.car_master = this.selectedList[0].car_master;
+      this.sendData.mileage = this.selectedList[0].mileage;
+      this.sendData.register_time = this.selectedList[0].register_time;
       this.show = false;
+    },
+    finalClickS() {
+      if (this.dataID && this.dataID === 1) {
+        this.sendData.use_dept = this.selectedList[0].mdm_code;
+        this.sendData.use_dept_name = this.selectedList[0].name;
+      } else if (this.dataID && this.dataID === 2) {
+        this.sendData.apply_dept_user = this.selectedList[0].mdm_code;
+        this.bmPeople = this.selectedList[0].name;
+      } else if (this.dataID && this.dataID === 4) {
+        this.sendData.use_people_name = this.selectedList[0].name;
+        this.sendData.use_people = this.selectedList[0].mdm_code;
+      } else if (this.dataID && this.dataID === 5) {
+        this.sendData.dispatch_user = this.selectedList;
+      } else if (this.dataID && this.dataID === 3) {
+        this.sendData.copy_user = this.selectedList;
+      }
+      this.bmhide = false;
+      this.showS = false;
     },
     danTypeonConfirm(value, index) {
       this.danTypeS = value.name;
@@ -199,12 +398,25 @@ export default {
       console.log(this.sendData);
       this.showDanType = false;
     },
+    carTypeonConfirm(value, index) {
+      this.mercy = value.name;
+      this.sendData.mercy = value.id;
+      this.showCarType = false;
+    },
     levelClick(item) {
       this.navList.push(item);
       this.getSelectData(item.mdm_pk);
     },
+    levelClickS(item) {
+      this.navList.push(item);
+      if (this.dataID === 1) {
+        this.getSelectDataS(item.mdm_pk);
+      } else {
+        this.getSelectDataS(item.mdm_pk, 1);
+      }
+    },
     getBaseData() {
-      this.$axios.get('http://carsadmin.iyunfish.cn/apply/getuser', {
+      this.$axios.get(this.baseUrl + 'apply/getuser', {
         params: {
         }
       }).then(response => {
@@ -213,9 +425,19 @@ export default {
       }).catch(() => {
       });
     },
+    getCarData() {
+      this.$axios.get(this.baseUrl + 'apply/dictionary', {
+        params: {
+          type: 'use_type'
+        }
+      }).then(response => {
+        this.carType = response.data.disposal_purposes;
+      }).catch(() => {
+      });
+    },
     getSelectData(mes) {
       this.showLoading = true;
-      this.$axios.get('http://carsadmin.iyunfish.cn/apply/cars', {
+      this.$axios.get(this.baseUrl + 'apply/cars', {
         params: {
           plate_num: mes
         }
@@ -226,10 +448,23 @@ export default {
       }).catch(() => {
       });
     },
-    onSearch(mes) {
+    // onSearch(mes) {
+    //   this.bmhide = false;
+    //   this.showLoading = true;
+    //   this.$axios.get(this.baseUrl + 'apply/search', {
+    //     params: {
+    //       name: mes
+    //     }
+    //   }).then(response => {
+    //     this.selectType.person = response.data;
+    //     this.showLoading = false;
+    //   }).catch(() => {
+    //   });
+    // },
+    onSearchS(mes) {
       this.bmhide = false;
       this.showLoading = true;
-      this.$axios.get('http://carsadmin.iyunfish.cn/apply/search', {
+      this.$axios.get(this.baseUrl + 'apply/search', {
         params: {
           name: mes
         }
@@ -239,13 +474,17 @@ export default {
       }).catch(() => {
       });
     },
+    onSearchCancelS() {
+      this.bmhide = true;
+      this.showSelectPopupS(this.dataID);
+    },
     sendMethod() {
       console.log(this.sendData);
       this.$axios.post('http://carsadmin.iyunfish.cn//apply/management', this.sendData)
       .then(response => {
         console.log(response.data);
         if (response.data.success) {
-          Toast.success(response.data.msg);
+          this.$router.push('/success');
         } else {
           Toast.fail(response.data.msg);
         }
