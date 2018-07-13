@@ -27,7 +27,11 @@ body {
     background-color: #237893;
 }
 .content {
-  padding: 20px 15px;
+  padding: 65px 15px 20px 15px; 
+}
+.van-tabs__wrap {
+  position: fixed!important;
+  top:45px!important;
 }
 .search .van-radio__input, .search .van-checkbox__icon {
   position: absolute;

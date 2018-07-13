@@ -5,6 +5,7 @@
     left-text="返回"
     right-text="关闭"
     left-arrow
+    fixed
     @click-left="onClickLeft"
     @click-right="onClickRight"
     />

@@ -5,6 +5,7 @@
     left-text="返回"
     right-text="关闭"
     left-arrow
+    fixed
     @click-left="onClickLeft"
     @click-right="onClickRight"
     />
@@ -16,47 +17,54 @@
         </div>
         <div class="content">
           <van-collapse v-model="activeNames">
-            <van-collapse-item title="基本信息" name="1"> 
+            <van-collapse-item title="申请人信息" name="1"> 
+              <van-field v-model="getMes.person" label="发起人"  disabled />
+              <van-field v-model="getMes.time" label="发起时间" disabled  />
+              <van-field v-model="getMes.dept" label="所属组织"  disabled />
+              <van-field v-model="getMes.center" label="区域/中心"  disabled />
+            </van-collapse-item>
+            <van-collapse-item title="基本信息" name="2"> 
               <van-field v-model="sendData.title" label="标题" disabled required/>
               <van-cell is-link title="车牌号" :value="sendData.plate_num" @click="showCarSelectPopup()" required/>
-              <van-field v-model="sendData.brand" label="厂牌型号" placeholder="请输入规格型号" disabled/>
-              <van-field v-model="sendData.car_master" label="车主姓名" placeholder="请输车主姓名" />
-              <van-field v-model="sendData.engine" label="发动机号" placeholder="请输入发动机型号" />
-              <van-cell is-link :value="sendData.register_time" @click="showTime = true" title="登记日期" />
-              <van-field v-model="sendData.carriage_num" label="车架号码" placeholder="请输入车架号码" />
+              <van-field v-model="sendData.brand" label="厂牌型号" placeholder="请输入规格型号" disabled required/>
+              <van-field v-model="sendData.car_master" label="车主姓名" placeholder="请输车主姓名" required/>
+              <van-field v-model="sendData.engine" label="发动机号" placeholder="请输入发动机型号" required/>
+              <van-cell is-link :value="sendData.register_time" @click="showTime = true" title="登记日期" required/>
+              <van-field v-model="sendData.carriage_num" label="车架号码" placeholder="请输入车架号码" required/>
             </van-collapse-item>
-            <van-collapse-item title="车辆状况" name="2">
-              <van-cell is-link :value="sendData.driving | statusTypeFilter" @click="clickshowif(1)" title="行驶证" />
-              <van-cell is-link :value="sendData.prove | statusTypeFilter" @click="clickshowif(2)" title="购置税证明" />
-              <van-cell is-link :value="sendData.register | statusTypeFilter" @click="clickshowif(3)" title="登记卡" />
-              <van-cell is-link :value="sendData.insurance | statusTypeFilter" @click="clickshowif(4)" title="保险卡" />
-              <van-cell is-link :value="sendData.insurance_sign | statusTypeFilter" @click="clickshowif(5)" title="保险标志" />
-              <van-cell is-link :value="sendData.protection_sign | statusTypeFilter" @click="clickshowif(6)" title="环保标志" />
-              <van-cell is-link :value="sendData.annual_sign | statusTypeFilter" @click="clickshowif(7)" title="年审标志" />
-              <van-cell is-link :value="sendData.annual_ticket | statusTypeFilter" @click="clickshowif(8)" title="年票" />
+            <van-collapse-item title="车辆状况" name="3">
+              <van-cell is-link :value="sendData.driving | statusTypeFilter" @click="clickshowif(1)" title="行驶证" required/>
+              <van-cell is-link :value="sendData.prove | statusTypeFilter" @click="clickshowif(2)" title="购置税证明" required/>
+              <van-cell is-link :value="sendData.register | statusTypeFilter" @click="clickshowif(3)" title="登记卡" required/>
+              <van-cell is-link :value="sendData.insurance | statusTypeFilter" @click="clickshowif(4)" title="保险卡" required/>
+              <van-cell is-link :value="sendData.insurance_sign | statusTypeFilter" @click="clickshowif(5)" title="保险标志" required/>
+              <van-cell is-link :value="sendData.protection_sign | statusTypeFilter" @click="clickshowif(6)" title="环保标志" required/>
+              <van-cell is-link :value="sendData.annual_sign | statusTypeFilter" @click="clickshowif(7)" title="年审标志" required/>
+              <van-cell is-link :value="sendData.annual_ticket | statusTypeFilter" @click="clickshowif(8)" title="年票" required/>
               <van-cell is-link :value="sendData.exhaust | statusTypeFilter" @click="clickshowif(9)" title="废气证" />
               <van-cell is-link :value="sendData.use_tax | statusTypeFilter" @click="clickshowif(10)" title="车船使用税" />
-              <van-cell is-link :value="sendData.lock | statusTypeFilter" @click="clickshowif(11)" title="防盗锁" />
-              <van-cell is-link :value="sendData.spare_tire  | statusTypeFilter" @click="clickshowif(12)" title="备用胎" />
+              <van-cell is-link :value="sendData.lock | statusTypeFilter" @click="clickshowif(11)" title="防盗锁" required/>
+              <van-cell is-link :value="sendData.spare_tire  | statusTypeFilter" @click="clickshowif(12)" title="备用胎" required/>
               <van-field v-model="sendData.glass_condition" label="玻璃情况" placeholder="请输入玻璃情况"/>
               <van-field v-model="sendData.car_condition" label="车身情况" placeholder="请输入车身情况"/>
               <van-cell is-link :value="sendData.car_tool  | statusTypeFilter" @click="clickshowif(13)" title="附车工具" />
               <van-cell is-link :value="sendData.danger_sign  | statusTypeFilter" @click="clickshowif(14)" title="危险标志" />
-              <van-field v-model="sendData.travel" label="行程里数" placeholder="请输入车辆行程里数"/>
+              <van-field v-model="sendData.travel" label="行程里数" placeholder="请输入车辆行程里数" required/>
               <van-field v-model="sendData.carloss" label="车身情况" placeholder="请输入车身情况"/>
               <van-field v-model="sendData.memo" label="备注说明"  rows="2" autosize/>
             </van-collapse-item>
-            <van-collapse-item title="拨调信息" name="3">
-              <van-field v-model="sendData.out_dept" label="调出部门" placeholder="请输入调出部门"/>
-              <van-field v-model="sendData.out_operator" label="调出经办人" placeholder="请输入调出经办人"/>
-              <van-field v-model="sendData.out_tele" label="调出经办电话" placeholder="请输入调出经办电话"/>
-              <van-cell  :value="in_dept_name" is-link title="调入部门" @click="showSelectPopup(1)" />
-              <van-field v-model="sendData.in_operator" label="调入经办人" placeholder="请输入调入经办人"/>
-              <van-field v-model="sendData.in_tele" label="调入经办电话" placeholder="请输入调入经办人电话"/>
-              <van-cell is-link :value="sendData.change_time" @click="showTime2 = true" title="调拨日期" />
+            <van-collapse-item title="拨调信息" name="4">
+              <van-field v-model="sendData.out_dept" label="调出部门" placeholder="请输入调出部门" required/>
+              <van-cell  :value="in_dept_name" is-link title="调入部门" @click="showSelectPopup(1)" required/>
+              <van-field v-model="sendData.out_operator" label="调出经办人" placeholder="请输入调出经办人" required/>
+              <van-field v-model="sendData.out_tele" label="调出经办电话" placeholder="请输入调出经办电话" required/>
+              <van-field v-model="sendData.in_operator" label="调入经办人" placeholder="请输入调入经办人" required/>
+              <van-field v-model="sendData.in_tele" label="调入经办电话" placeholder="请输入调入经办人电话" required/>
+              <van-cell is-link :value="sendData.change_time" @click="showTime2 = true" title="调拨日期" required/>
             </van-collapse-item>
-            <van-collapse-item title="审批信息" name="4">
+            <van-collapse-item title="审批信息" name="5">
               <van-field label="审批人" type="number" placeholder="审批人已由系统设置" disabled/>
+              <van-cell is-link :value="sendData.apply_type" @click="showType = true" title="调拨类型" required/>
               <van-cell is-link title="部门负责人" :value="bmPeople" @click="showSelectPopup(2)" required/>
               <van-cell v-model="message" title="抄送人">
                 <slot>
@@ -221,6 +229,17 @@
         </van-cell>
       </div>
     </van-popup>
+
+    <van-popup v-model="showType" position="bottom" :lazy-render="false" >
+      <van-picker
+        show-toolbar
+        value-key="name"
+        title="请选择所属板块"
+        :columns="belongType"
+        @cancel="showType = false"
+        @confirm="belongTypeonConfirm"
+      />
+    </van-popup>
   </div>
 </template>
 
@@ -272,6 +291,21 @@ export default {
       ifNumber: 0,
       message: ' ',
       radio: '1',
+      apply_type: ' ',
+      showType: false,
+      belongType: [{
+        name: '中心内部调拨',
+        value: 1
+      }, {
+        name: '区域内部调拨',
+        value: 2
+      }, {
+        name: '子公司内部调拨',
+        value: 3
+      }, {
+        name: '中心/区域/子公司之间调拨',
+        value: 3
+      }],
       currentDate: new Date(),
       currentDate2: new Date(),
       minDate: new Date(),
@@ -315,7 +349,8 @@ export default {
         danger_sign: ' ',
         in_dept_name: ' ',
         in_dept: ' ',
-        change_time: ' '
+        change_time: ' ',
+        apply_type: ' '
       },
       useTypeS: '',
       carTypeS: '',
@@ -386,6 +421,11 @@ export default {
     handleTimeClose(time) {
       this.sendData.dispatching_info.splice(this.sendData.dispatching_info.indexOf(time), 1);
     },
+    belongTypeonConfirm(value, index) {
+      // this.apply_type = value.name;
+      this.sendData.apply_type = value.name;
+      this.showType = false;
+    },
     levelClick(item) {
       this.navList.push(item);
       if (this.dataID === 1) {
@@ -448,7 +488,7 @@ export default {
         this.sendData.in_dept = this.selectedList[0].mdm_code;
         this.in_dept_name = this.selectedList[0].name;
       } else if (this.dataID && this.dataID === 2) {
-        this.sendData.apply_dept_user = this.selectedList[0].mdm_code;
+        this.sendData.apply_dept_user = this.selectedList[0].code;
         this.bmPeople = this.selectedList[0].name;
       } else if (this.dataID && this.dataID === 4) {
         this.sendData.use_people_name = this.selectedList[0].name;

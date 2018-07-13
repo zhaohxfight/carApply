@@ -5,6 +5,7 @@
     left-text="返回"
     right-text="关闭"
     left-arrow
+    fixed
     @click-left="onClickLeft"
     @click-right="onClickRight"
     />
@@ -16,14 +17,37 @@
         </div>
         <div class="content">
           <van-collapse v-model="activeNames">
-            <van-collapse-item title="购置信息" name="1">
+            <van-collapse-item title="申请人信息" name="1"> 
+              <van-field v-model="getMes.person" label="发起人"  disabled />
+              <van-field v-model="getMes.time" label="发起时间" disabled  />
+              <van-field v-model="getMes.dept" label="所属组织"  disabled />
+              <van-field v-model="getMes.center" label="区域/中心"  disabled />
+            </van-collapse-item>
+            <van-collapse-item title="购置信息" name="2">
               <van-field v-model="sendData.title" label="标题" disabled required/>
               <van-cell is-link :value="danTypeS" @click="showDanType = true" title="紧急程度" placeholder="请选择紧急程度" required/>
               <van-field v-model="sendData.tele" label="联系方式" placeholder="请输入发起人联系方式" required/>
               <van-field v-model="sendData.explain" label="备注" placeholder="购置说明"  rows="2" autosize/>
             </van-collapse-item>
-            <van-collapse-item title="审批信息" name="2">
+            <van-collapse-item title="车主信息" name="3">
+              <van-field v-model="sendData.car_master" label="车主" required/>
+              <van-cell is-link :value="purpose" @click="showpoType = true" title="公用/私用" required/>
+              <van-field v-model="sendData.use_people" label="使用人" required/>
+              <van-cell is-link title="使用部门" :value="use_department" @click="showSelectPopup(8)" required />
+              <van-field v-model="sendData.phone" label="电话" placeholder="请输入联系方式" required/>
+              <van-field v-model="sendData.price" label="购买价格" placeholder="请输入购买价格"  required/>
+            </van-collapse-item>
+            <!-- <van-collapse-item title="购置税" name="4">
+              <van-field v-model="sendData.voucher_num" label="凭证号" required/>
+              <van-field v-model="sendData.pay_people" label="缴纳人" placeholder="请输入发起人联系方式" required/>
+              <van-field v-model="sendData.operator" label="经办人" placeholder="购置说明"  required/>
+              <van-cell is-link :value="sendData.pay_time" @click="showPriceDate = true" title="缴费日期" required/>
+              <van-field v-model="sendData.position" label="存放位置" placeholder="购置说明"  required/>
+              <van-field v-model="sendData.memo" label="备注" placeholder="购置说明"  rows="2" autosize/>
+            </van-collapse-item> -->
+            <van-collapse-item title="审批信息" name="5">
               <van-field label="审批人" type="number" placeholder="审批人已由系统设置" disabled/>
+              <van-cell is-link :value="apply_type" @click="showType = true" title="所属板块" placeholder="所属板块" required/>
               <van-cell is-link title="部门负责人" :value="bmPeople" @click="showSelectPopup(2)" required />
               <van-cell v-model="message" title="抄送人">
                 <slot>
@@ -56,6 +80,35 @@
         :columns="danType"
         @cancel="showDanType = false"
         @confirm="danTypeonConfirm"
+      />
+    </van-popup>
+    <van-popup v-model="showPriceDate" position="bottom" :lazy-render="false" >
+      <van-datetime-picker
+        type="date"
+        title="选择缴纳日期"
+         v-model="currentDate"
+        @confirm="onPriceConfirm"
+        @cancel="showPriceDate = false"
+      />
+    </van-popup>
+    <van-popup v-model="showType" position="bottom" :lazy-render="false" >
+      <van-picker
+        show-toolbar
+        value-key="name"
+        title="请选择所属板块"
+        :columns="belongType"
+        @cancel="showType = false"
+        @confirm="belongTypeonConfirm"
+      />
+    </van-popup>
+    <van-popup v-model="showpoType" position="bottom" :lazy-render="false" >
+      <van-picker
+        show-toolbar
+        value-key="name"
+        title="请选择公用私用"
+        :columns="purposeType"
+        @cancel="showpoType = false"
+        @confirm="poTypeonConfirm"
       />
     </van-popup>
     <van-popup v-model="show" class="bm-search" position="right" :overlay="false">
@@ -170,10 +223,39 @@ export default {
       active: 0,
       show: false,
       bmhide: true,
+      pay_time: ' ',
+      BM: {},
       showPeople: false,
       showBM: false,
+      showpoType: false,
+      showPriceDate: false,
+      currentDate: new Date(),
       message: ' ',
       activeNames: ['1'],
+      use_department: ' ',
+      showType: false,
+      apply_type: ' ',
+      purpose: ' ',
+      purposeType: [{
+        name: '公用',
+        value: 1
+      }, {
+        name: '私用',
+        value: 2
+      }, {
+        name: '私家公用',
+        value: 3
+      }],
+      belongType: [{
+        name: '集团总部',
+        value: 1
+      }, {
+        name: '房产公司',
+        value: 2
+      }, {
+        name: '子公司',
+        value: 3
+      }],
       showLoading: false,
       searchValue: '',
       PE: {},
@@ -197,6 +279,7 @@ export default {
       getMes: {},
       sendData: {
         title: '',
+        pay_time: ' ',
         copy_user: []
       }
     };
@@ -225,6 +308,9 @@ export default {
       if (id === 1) {
         this.showBM = true;
         this.getSelectData('');
+      } else if (id === 8) {
+        this.showBM = true;
+        this.getSelectData('');
       } else if (id === 2) {
         this.showPeople = true;
         this.getSelectData('', 1);
@@ -244,8 +330,12 @@ export default {
       if (this.dataID && this.dataID === 1) {
         this.sendData.use_dept = this.selectedList[0].mdm_code;
         this.sendData.use_dept_name = this.selectedList[0].name;
+      } else if (this.dataID && this.dataID === 8) {
+        console.log(this.selectedList);
+        this.sendData.use_department = this.selectedList[0].mdm_code;
+        this.use_department = this.selectedList[0].name;
       } else if (this.dataID && this.dataID === 2) {
-        this.sendData.apply_dept_user = this.selectedList[0].mdm_code;
+        this.sendData.apply_dept_user = this.selectedList[0].code;
         this.bmPeople = this.selectedList[0].name;
       } else if (this.dataID && this.dataID === 4) {
         this.sendData.use_people_name = this.selectedList[0].name;
@@ -258,11 +348,21 @@ export default {
       this.bmhide = false;
       this.show = false;
     },
+    belongTypeonConfirm(value, index) {
+      this.apply_type = value.name;
+      this.sendData.apply_type = value.value;
+      this.showType = false;
+    },
     danTypeonConfirm(value, index) {
       this.danTypeS = value.name;
       this.sendData.urgent = value.value;
       console.log(this.sendData);
       this.showDanType = false;
+    },
+    poTypeonConfirm(value, index) {
+      this.purpose = value.name;
+      this.sendData.purpose = value.value;
+      this.showpoType = false;
     },
     levelClick(item) {
       this.navList.push(item);
@@ -309,6 +409,26 @@ export default {
       this.bmhide = true;
       this.showSelectPopup(this.dataID);
     },
+    onPriceConfirm() {
+      this.sendData.pay_time = this.formatDate(this.currentDate, 'yyyy-MM-dd');
+      this.showPriceDate = false;
+    },
+    formatDate(date, fmt) {
+      if (/(y+)/.test(fmt)) {
+        fmt = fmt.replace(RegExp.$1, (date.getFullYear() + '').substr(4 - RegExp.$1.length));
+      };
+      const o = {
+        'M+': date.getMonth() + 1,
+        'd+': date.getDate(),
+        'h+': date.getHours(),
+        'm+': date.getMinutes(),
+        's+': date.getSeconds()
+      };
+      for (var k in o) {
+        if (new RegExp('(' + k + ')').test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length === 1) ? (o[k]) : (('00' + o[k]).substr(('' + o[k]).length)));
+      }
+      return fmt;
+    },
     sendMethod() {
       console.log(this.sendData);
       this.$axios.post(this.baseUrl + 'apply/purchase', this.sendData)
@@ -324,6 +444,10 @@ export default {
     }
   },
   watch: {
+    BM(val) {
+      this.selectedList = [];
+      this.selectedList.push(val);
+    },
     PE(val) {
       this.selectedList = [];
       this.selectedList.push(val);

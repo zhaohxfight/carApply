@@ -5,6 +5,7 @@
     left-text="返回"
     right-text="关闭"
     left-arrow
+    fixed
     @click-left="onClickLeft"
     @click-right="onClickRight"
     />
@@ -16,7 +17,13 @@
         </div>
         <div class="content">
           <van-collapse v-model="activeNames">
-            <van-collapse-item title="处置信息" name="1">
+            <van-collapse-item title="申请人信息" name="1"> 
+              <van-field v-model="getMes.person" label="发起人"  disabled />
+              <van-field v-model="getMes.time" label="发起时间" disabled  />
+              <van-field v-model="getMes.dept" label="所属组织"  disabled />
+              <van-field v-model="getMes.center" label="区域/中心"  disabled />
+            </van-collapse-item>
+            <van-collapse-item title="处置信息" name="2">
               <van-field v-model="sendData.title" label="标题" disabled required/>
               <van-cell is-link title="车牌号" :value="sendData.plate_num" @click="showSelectPopup()" required/>
               <van-field v-model="sendData.car_master" label="车主姓名" placeholder="请输车主姓名"/>
@@ -36,7 +43,9 @@
             </van-collapse-item>
             <van-collapse-item title="审批信息" name="3">
               <van-field label="审批人" type="number" placeholder="审批人已由系统设置" disabled/>
-              <van-cell is-link title="部门负责人" :value="bmPeople" @click="showSelectPopupS(2)" required/>
+              <van-cell is-link :value="apply_type" @click="showType = true" title="所属板块" placeholder="所属板块" required/>
+              <van-cell is-link title="车辆所属公司管理员" :value="company_admin" @click="showSelectPopupS(6)" required/>
+              <van-cell is-link title="车辆管理员" :value="car_admin" @click="showSelectPopupS(7)" required/>
               <van-cell v-model="message" title="抄送人">
                 <slot>
                   <span class="my-tag pr-2" v-for="tag in sendData.copy_user"  @click="handleClose(tag, 2)">{{tag.name}} <van-icon name="close" class="tag-close my-Mestag" /></span>
@@ -85,6 +94,16 @@
         :columns="carType"
         @cancel="showCarType = false"
         @confirm="carTypeonConfirm"
+      />
+    </van-popup>
+    <van-popup v-model="showType" position="bottom" :lazy-render="false" >
+      <van-picker
+        show-toolbar
+        value-key="name"
+        title="请选择所属板块"
+        :columns="belongType"
+        @cancel="showType = false"
+        @confirm="belongTypeonConfirm"
       />
     </van-popup>
     <van-popup v-model="show" class="bm-search" position="right" :overlay="false">
@@ -185,7 +204,7 @@
             </van-cell-group>
           </van-checkbox-group>
 
-          <van-radio-group v-if="dataID === 4 || dataID === 2" v-model="PE" class="peopleS">
+          <van-radio-group v-if="dataID === 4 || dataID === 2 || dataID === 6 || dataID === 7" v-model="PE" class="peopleS">
             <van-cell-group>
               <van-cell v-for="item2 in selectType.person" >
                 <van-radio :name="item2">
@@ -246,14 +265,28 @@ export default {
       showPeople: false,
       showBM: false,
       showCarType: false,
+      showType: false,
       message: ' ',
       activeNames: ['1'],
       showLoading: false,
       bmPeople: ' ',
+      car_admin: ' ',
+      company_admin: ' ',
       currentDate: new Date(),
       searchValue: '',
       mercy: '',
       carType: [],
+      apply_type: ' ',
+      belongType: [{
+        name: '集团总部',
+        value: 1
+      }, {
+        name: '房产公司',
+        value: 2
+      }, {
+        name: '子公司',
+        value: 3
+      }],
       PE: {},
       navList: [],
       platenum: '',
@@ -337,6 +370,12 @@ export default {
       } else if (id === 2) {
         this.showPeople = true;
         this.getSelectDataS('', 1);
+      } else if (id === 6) {
+        this.showPeople = true;
+        this.getSelectDataS('', 1);
+      } else if (id === 7) {
+        this.showPeople = true;
+        this.getSelectDataS('', 1);
       } else if (id === 3) {
         this.showPeople = true;
         this.getSelectDataS('', 1);
@@ -379,8 +418,14 @@ export default {
         this.sendData.use_dept = this.selectedList[0].mdm_code;
         this.sendData.use_dept_name = this.selectedList[0].name;
       } else if (this.dataID && this.dataID === 2) {
-        this.sendData.apply_dept_user = this.selectedList[0].mdm_code;
+        this.sendData.apply_dept_user = this.selectedList[0].code;
         this.bmPeople = this.selectedList[0].name;
+      } else if (this.dataID && this.dataID === 6) {
+        this.sendData.company_admin = this.selectedList[0].code;
+        this.company_admin = this.selectedList[0].name;
+      } else if (this.dataID && this.dataID === 7) {
+        this.sendData.car_admin = this.selectedList[0].code;
+        this.car_admin = this.selectedList[0].name;
       } else if (this.dataID && this.dataID === 4) {
         this.sendData.use_people_name = this.selectedList[0].name;
         this.sendData.use_people = this.selectedList[0].mdm_code;
@@ -395,13 +440,17 @@ export default {
     danTypeonConfirm(value, index) {
       this.danTypeS = value.name;
       this.sendData.urgent = value.value;
-      console.log(this.sendData);
       this.showDanType = false;
     },
     carTypeonConfirm(value, index) {
       this.mercy = value.name;
       this.sendData.mercy = value.id;
       this.showCarType = false;
+    },
+    belongTypeonConfirm(value, index) {
+      this.apply_type = value.name;
+      this.sendData.apply_type = value.value;
+      this.showType = false;
     },
     levelClick(item) {
       this.navList.push(item);
