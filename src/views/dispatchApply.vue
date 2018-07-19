@@ -49,7 +49,14 @@
             <van-collapse-item title="审批信息" name="3">
               <van-field label="审批人" type="number" placeholder="审批人已由系统设置" disabled/>
               <van-cell is-link :value="apply_type" @click="showType = true" title="所属板块" placeholder="所属板块" required/>
-              <van-cell is-link title="部门负责人" :value="bmPeople" @click="showSelectPopup(2)" required/>
+              <!-- <van-cell v-if="sendData.send_type === 1" is-link title="部门负责人" :value="bmPeople" @click="showSelectPopup(2)" required/> -->
+              <!-- <van-cell v-if="sendData.send_type === 1" v-model="in_president" title="部门负责人" required>
+                <slot>
+                  <span class="my-tag pr-2" v-for="tag in sendData.apply_dept_user"  @click="handleClose(tag, 3)">{{tag.name}} <van-icon name="close" class="tag-close my-Mestag" /></span>
+                </slot>
+                <van-icon  slot="right-icon" name="add-o" class="van-cell__right-icon tag-add" @click="showSelectPopup(2)" />      
+              </van-cell> -->
+              <van-cell v-if="sendData.send_type === 2" is-link title="中心/区域/子公司负责人" :value="in_president" @click="showSelectPopup(6)" required/>
               <!-- <van-cell v-model="message" title="车辆调度" >
                 <slot>
                   <span class="my-tag pr-2" v-for="tag in sendData.dispatch_user"  @click="handleClose(tag, 1)">{{tag.name}}<van-icon name="close" class="tag-close my-Mestag" /></span>
@@ -76,6 +83,7 @@
           流程图
         </div>
         <div class="content">
+          <img class="lcimg" src="../assets/img/pc.png" alt="">
         </div>
       </van-tab>
     </van-tabs>
@@ -179,7 +187,7 @@
             </van-cell>
           </van-cell-group>
 
-          <van-checkbox-group v-if="dataID === 3 || dataID === 5" v-model="selectedList" class="peopleS">
+          <van-checkbox-group v-if="dataID === 3 || dataID === 5 || dataID === 2" v-model="selectedList" class="peopleS">
             <van-cell-group>
               <van-cell v-for="item2 in selectType.person" >
                 <van-checkbox :name="item2">
@@ -190,7 +198,7 @@
             </van-cell-group>
           </van-checkbox-group>
 
-          <van-radio-group v-if="dataID === 4 || dataID === 2" v-model="PE" class="peopleS">
+          <van-radio-group v-if="dataID === 4 || dataID === 6" v-model="PE" class="peopleS">
             <van-cell-group>
               <van-cell v-for="item2 in selectType.person" >
                 <van-radio :name="item2">
@@ -245,6 +253,7 @@ export default {
       active: 0,
       activeNames: ['1'],
       searchValue: '',
+      in_president: ' ',
       BM: {},
       PE: {},
       showTime: false,
@@ -280,8 +289,9 @@ export default {
         use_people: '',
         use_people_name: '',
         use_type: '',
-        send_type: '',
+        send_type: 1,
         use_reason: '',
+        in_president: '',
         trip: '',
         eip: '',
         memo: '',
@@ -291,12 +301,10 @@ export default {
         use_dept_name: '',
         dispatch_user: [],
         dispatching_info: [],
-        apply_dept_user: [{
-          name: ''
-        }]
+        apply_dept_user: []
       },
       useTypeS: '',
-      carTypeS: '',
+      carTypeS: '一般派车',
       timeMath: [],
       timeItem: {},
       dynamicTags: [],
@@ -343,18 +351,25 @@ export default {
   created() {
     this.getBaseData();
     this.getCarData();
-    // this.getSelectData();
+    // this.getSelectData();3
   },
   methods: {
     onClickLeft() {
       window.history.go(-1);
     },
     onClickRight() {
-      Toast('按钮');
+      window.connectWebViewJavascriptBridge(function(bridge) {
+        console.log('关闭');
+        bridge.callHandler('closeCurWindow', function(response) {
+        });
+      });
+      window.webkit.messageHandlers.closeCurWindow.postMessage('关闭当前界面');
     },
     handleClose(tag, id) {
       if (id === 1) {
         this.sendData.dispatch_user.splice(this.sendData.dispatch_user.indexOf(tag), 1);
+      } else if (id === 3) {
+        this.sendData.apply_dept_user.splice(this.sendData.apply_dept_user.indexOf(tag), 1);
       } else {
         this.sendData.copy_user.splice(this.sendData.copy_user.indexOf(tag), 1);
       }
@@ -394,8 +409,10 @@ export default {
         this.sendData.use_dept = this.selectedList[0].mdm_code;
         this.sendData.use_dept_name = this.selectedList[0].name;
       } else if (this.dataID && this.dataID === 2) {
-        this.sendData.apply_dept_user = this.selectedList[0].code;
-        this.bmPeople = this.selectedList[0].name;
+        this.sendData.apply_dept_user = this.selectedList;
+      } else if (this.dataID && this.dataID === 6) {
+        this.sendData.in_president = this.selectedList[0].code;
+        this.in_president = this.selectedList[0].name;
       } else if (this.dataID && this.dataID === 4) {
         this.sendData.use_people_name = this.selectedList[0].name;
         this.sendData.use_people = this.selectedList[0].mdm_code;
@@ -421,7 +438,7 @@ export default {
       if (id === 1) {
         this.showBM = true;
         this.getSelectData('');
-      } else if (id === 2) {
+      } else if (id === 2 || id === 6) {
         this.showPeople = true;
         this.getSelectData('', 1);
       } else if (id === 3) {
@@ -683,7 +700,7 @@ export default {
   margin-bottom: 45px; 
   width: 100%;
   height: 1calc(100% - 180px);
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;

@@ -49,4 +49,8 @@ body {
   font-size: 12px;
   color: #808080;
 }
+.lcimg {
+  width: 100%;
+  height: auto;
+}
 </style>

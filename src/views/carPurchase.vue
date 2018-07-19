@@ -48,7 +48,25 @@
             <van-collapse-item title="审批信息" name="5">
               <van-field label="审批人" type="number" placeholder="审批人已由系统设置" disabled/>
               <van-cell is-link :value="apply_type" @click="showType = true" title="所属板块" placeholder="所属板块" required/>
-              <van-cell is-link title="部门负责人" :value="bmPeople" @click="showSelectPopup(2)" required />
+              <!-- <van-cell is-link title="部门负责人" :value="bmPeople" @click="showSelectPopup(2)" required /> -->
+              <van-cell v-if="sendData.apply_type === 1 || sendData.apply_type === 3" v-model="message" title="部门负责人" required>
+                <slot>
+                  <span class="my-tag pr-2" v-for="tag in sendData.apply_dept_user"  @click="handleClose(tag, 3)">{{tag.name}} <van-icon name="close" class="tag-close my-Mestag" /></span>
+                </slot>
+                <van-icon  slot="right-icon" name="add-o" class="van-cell__right-icon tag-add" @click="showSelectPopup(2)" />      
+              </van-cell>
+              <van-cell v-if="sendData.apply_type === 2" v-model="message" title="财务部门负责人" required>
+                <slot>
+                  <span class="my-tag pr-2" v-for="tag in sendData.region_person"  @click="handleClose(tag, 4)">{{tag.name}} <van-icon name="close" class="tag-close my-Mestag" /></span>
+                </slot>
+                <van-icon  slot="right-icon" name="add-o" class="van-cell__right-icon tag-add" @click="showSelectPopup(9)" />      
+              </van-cell>
+              <van-cell v-if="sendData.apply_type === 2" v-model="message" title="行政部门负责人" required>
+                <slot>
+                  <span class="my-tag pr-2" v-for="tag in sendData.servic_person"  @click="handleClose(tag, 5)">{{tag.name}} <van-icon name="close" class="tag-close my-Mestag" /></span>
+                </slot>
+                <van-icon  slot="right-icon" name="add-o" class="van-cell__right-icon tag-add" @click="showSelectPopup(10)" />      
+              </van-cell>
               <van-cell v-model="message" title="抄送人">
                 <slot>
                   <span class="my-tag pr-2" v-for="tag in sendData.copy_user"  @click="handleClose(tag, 2)">{{tag.name}} <van-icon name="close" class="tag-close my-Mestag" /></span>
@@ -68,6 +86,7 @@
           流程图
         </div>
         <div class="content">
+          <img class="lcimg" src="../assets/img/gz.png" alt="">
         </div>
       </van-tab>
     </van-tabs>
@@ -157,7 +176,7 @@
             </van-cell>
           </van-cell-group>
 
-          <van-checkbox-group v-if="dataID === 3 || dataID === 5" v-model="selectedList" class="peopleS">
+          <van-checkbox-group v-if="dataID === 3 || dataID === 5 || dataID === 2 || dataID === 9 || dataID === 10" v-model="selectedList" class="peopleS">
             <van-cell-group>
               <van-cell v-for="item2 in selectType.person" >
                 <van-checkbox :name="item2">
@@ -168,7 +187,7 @@
             </van-cell-group>
           </van-checkbox-group>
 
-          <van-radio-group v-if="dataID === 4 || dataID === 2" v-model="PE" class="peopleS">
+          <van-radio-group v-if="dataID === 4" v-model="PE" class="peopleS">
             <van-cell-group>
               <van-cell v-for="item2 in selectType.person" >
                 <van-radio :name="item2">
@@ -234,7 +253,7 @@ export default {
       activeNames: ['1'],
       use_department: ' ',
       showType: false,
-      apply_type: ' ',
+      apply_type: '集团总部',
       purpose: ' ',
       purposeType: [{
         name: '公用',
@@ -280,6 +299,7 @@ export default {
       sendData: {
         title: '',
         pay_time: ' ',
+        apply_type: 1,
         copy_user: []
       }
     };
@@ -292,7 +312,12 @@ export default {
       window.history.go(-1);
     },
     onClickRight() {
-      Toast('按钮');
+      window.connectWebViewJavascriptBridge(function(bridge) {
+        console.log('关闭');
+        bridge.callHandler('closeCurWindow', function(response) {
+        });
+      });
+      window.webkit.messageHandlers.closeCurWindow.postMessage('关闭当前界面');
     },
     showSelectPopup(id) {
       this.dataID = id;
@@ -311,7 +336,7 @@ export default {
       } else if (id === 8) {
         this.showBM = true;
         this.getSelectData('');
-      } else if (id === 2) {
+      } else if (id === 2 || id === 9 || id === 10) {
         this.showPeople = true;
         this.getSelectData('', 1);
       } else if (id === 3) {
@@ -335,8 +360,11 @@ export default {
         this.sendData.use_department = this.selectedList[0].mdm_code;
         this.use_department = this.selectedList[0].name;
       } else if (this.dataID && this.dataID === 2) {
-        this.sendData.apply_dept_user = this.selectedList[0].code;
-        this.bmPeople = this.selectedList[0].name;
+        this.sendData.apply_dept_user = this.selectedList;
+      } else if (this.dataID && this.dataID === 9) {
+        this.sendData.region_person = this.selectedList;
+      } else if (this.dataID && this.dataID === 10) {
+        this.sendData.servic_person = this.selectedList;
       } else if (this.dataID && this.dataID === 4) {
         this.sendData.use_people_name = this.selectedList[0].name;
         this.sendData.use_people = this.selectedList[0].mdm_code;
@@ -349,8 +377,16 @@ export default {
       this.show = false;
     },
     belongTypeonConfirm(value, index) {
-      this.apply_type = value.name;
-      this.sendData.apply_type = value.value;
+      if (this.sendData.apply_type !== value.value) {
+        this.sendData.apply_type = '';
+        this.sendData.region_person = '';
+        this.sendData.servic_person = '';
+        this.apply_type = value.name;
+        this.sendData.apply_type = value.value;
+      } else {
+        this.apply_type = value.name;
+        this.sendData.apply_type = value.value;
+      }
       this.showType = false;
     },
     danTypeonConfirm(value, index) {
@@ -358,6 +394,17 @@ export default {
       this.sendData.urgent = value.value;
       console.log(this.sendData);
       this.showDanType = false;
+    },
+    handleClose(tag, id) {
+      if (id === 2) {
+        this.sendData.copy_user.splice(this.sendData.copy_user.indexOf(tag), 1);
+      } else if (id === 3) {
+        this.sendData.apply_dept_user.splice(this.sendData.apply_dept_user.indexOf(tag), 1);
+      } else if (id === 4) {
+        this.sendData.region_person.splice(this.sendData.region_person.indexOf(tag), 1);
+      } else if (id === 5) {
+        this.sendData.servic_person.splice(this.sendData.servic_person.indexOf(tag), 1);
+      }
     },
     poTypeonConfirm(value, index) {
       this.purpose = value.name;
@@ -584,7 +631,7 @@ export default {
   margin-bottom: 45px; 
   width: 100%;
   height: 1calc(100% - 180px);
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;

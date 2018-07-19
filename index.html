@@ -3,8 +3,28 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <title>vant-template-test</title>
+    <title></title>
   </head>
+  <script>
+    // 用于创建桥接对象的函数
+    window.connectWebViewJavascriptBridge = function (callback) {
+      // 如果桥接对象已存在，则直接调用callback函数
+      if (window.WebViewJavascriptBridge) {
+        callback(WebViewJavascriptBridge)
+      }
+      // 否则添加一个监听器来执行callback函数
+      else {
+        document.addEventListener('WebViewJavascriptBridgeReady', function() {
+          callback(WebViewJavascriptBridge)
+        }, false)
+      }
+    }
+    window.connectWebViewJavascriptBridge(function(bridge) {
+      bridge.callHandler('hideNavigationBar', function(response) {
+      });
+    });
+    window.webkit.messageHandlers.hideNavigationBar.postMessage('隐藏导航栏');
+  </script>
   <body>
     <div id="app"></div>
     <!-- built files will be auto injected -->

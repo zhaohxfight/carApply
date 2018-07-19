@@ -8,7 +8,6 @@ Vue.use(NavBar);
 Vue.use(Toast);
 Vue.prototype.$axios = axios;
 Vue.prototype.baseUrl = 'http://carsadmin.iyunfish.cn/';
-
 const carApply = () => import('@/views/carApply.vue');
 const dispatchApply = () => import('@/views/dispatchApply.vue');
 const carPurchase = () => import('@/views/carPurchase.vue');

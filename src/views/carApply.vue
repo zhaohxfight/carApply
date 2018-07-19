@@ -27,7 +27,7 @@
 </template>
 
 <script>
-import { Cell, CellGroup, Icon, Toast, Dialog } from 'vant';
+import { Cell, CellGroup, Icon, Dialog } from 'vant';
 
 export default {
   components: {
@@ -46,10 +46,19 @@ export default {
   },
   methods: {
     onClickLeft() {
-      window.history.go(-1);
+      window.connectWebViewJavascriptBridge(function(bridge) {
+        bridge.callHandler('closeCurWindow', function(response) {
+        });
+      });
+      window.webkit.messageHandlers.closeCurWindow.postMessage('关闭当前界面');
     },
     onClickRight() {
-      Toast('按钮');
+      window.connectWebViewJavascriptBridge(function(bridge) {
+        console.log('关闭');
+        bridge.callHandler('closeCurWindow', function(response) {
+        });
+      });
+      window.webkit.messageHandlers.closeCurWindow.postMessage('关闭当前界面');
     },
     getBaseData() {
       this.$axios.get(this.baseUrl + 'apply/getuser', {

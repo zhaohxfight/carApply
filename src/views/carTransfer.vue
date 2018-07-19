@@ -50,22 +50,40 @@
               <van-cell is-link :value="sendData.car_tool  | statusTypeFilter" @click="clickshowif(13)" title="附车工具" />
               <van-cell is-link :value="sendData.danger_sign  | statusTypeFilter" @click="clickshowif(14)" title="危险标志" />
               <van-field v-model="sendData.travel" label="行程里数" placeholder="请输入车辆行程里数" required/>
-              <van-field v-model="sendData.carloss" label="车身情况" placeholder="请输入车身情况"/>
+              <!-- <van-field v-model="sendData.carloss" label="车身情况" placeholder="请输入车身情况"/> -->
               <van-field v-model="sendData.memo" label="备注说明"  rows="2" autosize/>
             </van-collapse-item>
             <van-collapse-item title="拨调信息" name="4">
-              <van-field v-model="sendData.out_dept" label="调出部门" placeholder="请输入调出部门" required/>
-              <van-cell  :value="in_dept_name" is-link title="调入部门" @click="showSelectPopup(1)" required/>
-              <van-field v-model="sendData.out_operator" label="调出经办人" placeholder="请输入调出经办人" required/>
-              <van-field v-model="sendData.out_tele" label="调出经办电话" placeholder="请输入调出经办电话" required/>
-              <van-field v-model="sendData.in_operator" label="调入经办人" placeholder="请输入调入经办人" required/>
+              <!-- <van-field v-model="sendData.out_dept" label="调出部门" placeholder="请输入调出部门" required/> -->
+              <van-cell  :value="sendData.out_dept" is-link title="调出部门" @click="showSelectPopup(9)" required/>
+              <van-cell :value="sendData.out_operator" is-link title="调出经办人" placeholder="请输入调出经办人"  @click="showSelectPopup(7)" required/>
+              <van-field v-model="sendData.out_tele" label="调出经办电话" placeholder="请输入调出经办电话"   required/>
+              <van-cell  :value="sendData.in_dept" is-link title="调入部门" @click="showSelectPopup(1)" required/>
+              <van-cell :value="sendData.in_operator" is-link title="调入经办人" placeholder="请输入调入经办人" @click="showSelectPopup(8)" required/>
               <van-field v-model="sendData.in_tele" label="调入经办电话" placeholder="请输入调入经办人电话" required/>
               <van-cell is-link :value="sendData.change_time" @click="showTime2 = true" title="调拨日期" required/>
             </van-collapse-item>
             <van-collapse-item title="审批信息" name="5">
               <van-field label="审批人" type="number" placeholder="审批人已由系统设置" disabled/>
               <van-cell is-link :value="sendData.apply_type" @click="showType = true" title="调拨类型" required/>
-              <van-cell is-link title="部门负责人" :value="bmPeople" @click="showSelectPopup(2)" required/>
+              <van-cell v-if="sendData.apply_type === '中心内部调拨'" is-link title="调出部门负责人" :value="bmPeople" @click="showSelectPopup(2)" required/>
+              <van-cell v-if="sendData.apply_type === '区域内部调拨'" is-link title="区域财务负责人" :value="region_person" @click="showSelectPopup(10)" required/>
+              <van-cell v-if="sendData.apply_type === '子公司内部调拨'" is-link title="子公司行政办公室主任" :value="subsidiary_person" @click="showSelectPopup(11)" required/>
+              <van-cell class="clearBotoom" v-if="sendData.apply_type === '中心/区域/子公司之间调拨'" value="调出的区域办公室主任/子公司行政办公室主任/职能部门负责人"  required/>
+              <van-cell v-if="sendData.apply_type === '中心/区域/子公司之间调拨'" is-link title="" :value="out_office_director" @click="showSelectPopup(12)"/>
+              <van-cell class="clearBotoom" v-if="sendData.apply_type === '中心/区域/子公司之间调拨'" value="调出的区域总裁/子公司负责人/中心负责人" required/>
+              <van-cell v-if="sendData.apply_type === '中心/区域/子公司之间调拨'" is-link title="" :value="out_president" @click="showSelectPopup(13)" />
+              <van-cell class="clearBotoom" v-if="sendData.apply_type === '中心/区域/子公司之间调拨'" value="调入的区域办公室主任/子公司行政办公室主任/职能部门负责人" required/>
+              <van-cell v-if="sendData.apply_type === '中心/区域/子公司之间调拨'" is-link title="" :value="in_office_director" @click="showSelectPopup(14)" />
+              <van-cell class="clearBotoom" v-if="sendData.apply_type === '中心/区域/子公司之间调拨'" value="调入的区域总裁/子公司负责人/中心负责人" required/>
+              <van-cell v-if="sendData.apply_type === '中心/区域/子公司之间调拨'" is-link title="" :value="in_president" @click="showSelectPopup(15)" />
+              <van-cell class="clearBotoom" value="车辆所属公司资产管理员确认(财务)" required/>
+              <van-cell v-model="message" title="">
+                <slot>
+                  <span class="my-tag pr-2" v-for="tag in sendData.car_admin"  @click="handleClose(tag, 3)">{{tag.name}} <van-icon name="close" class="tag-close my-Mestag" /></span>
+                </slot>
+                <van-icon  slot="right-icon" name="add-o" class="van-cell__right-icon tag-add" @click="showSelectPopup(6)" />      
+              </van-cell>
               <van-cell v-model="message" title="抄送人">
                 <slot>
                   <span class="my-tag pr-2" v-for="tag in sendData.copy_user"  @click="handleClose(tag, 2)">{{tag.name}} <van-icon name="close" class="tag-close my-Mestag" /></span>
@@ -86,6 +104,7 @@
           流程图
         </div>
         <div class="content">
+          <img class="lcimg" src="../assets/img/db.png" alt="">
         </div>
       </van-tab>
     </van-tabs>
@@ -155,7 +174,7 @@
             </van-cell>
           </van-cell-group>
 
-          <van-checkbox-group v-if="dataID === 3 || dataID === 5" v-model="selectedList" class="peopleS">
+          <van-checkbox-group v-if="dataID === 3 || dataID === 5 || dataID === 6" v-model="selectedList" class="peopleS">
             <van-cell-group>
               <van-cell v-for="item2 in selectType.person" >
                 <van-checkbox :name="item2">
@@ -166,7 +185,7 @@
             </van-cell-group>
           </van-checkbox-group>
 
-          <van-radio-group v-if="dataID === 4 || dataID === 2" v-model="PE" class="peopleS">
+          <van-radio-group v-if="dataID === 4 || dataID === 2|| dataID === 7 || dataID === 8 || dataID === 10 || dataID === 11 || dataID === 12 || dataID === 13 || dataID === 14 || dataID === 15" v-model="PE" class="peopleS">
             <van-cell-group>
               <van-cell v-for="item2 in selectType.person" >
                 <van-radio :name="item2">
@@ -274,9 +293,18 @@ export default {
       active: 0,
       activeNames: ['1'],
       searchValue: '',
+      car_admin: ' ',
+      out_operator: ' ',
+      in_operator: ' ',
       BM: {},
       PE: {},
       in_dept_name: '',
+      region_person: ' ',
+      subsidiary_person: ' ',
+      out_office_director: ' ',
+      out_president: ' ',
+      in_office_director: ' ',
+      in_president: ' ',
       showTime: false,
       showTime2: false,
       showif: false,
@@ -340,6 +368,10 @@ export default {
         insurance_sign: ' ',
         protection_sign: ' ',
         annual_sign: ' ',
+        out_operator: ' ',
+        out_operator_code: '',
+        in_operator: ' ',
+        in_operator_code: '',
         annual_ticket: ' ',
         exhaust: ' ',
         use_tax: ' ',
@@ -347,10 +379,12 @@ export default {
         spare_tire: ' ',
         car_tool: ' ',
         danger_sign: ' ',
-        in_dept_name: ' ',
+        in_dept_code: '',
         in_dept: ' ',
+        out_dept: ' ',
+        out_dept_code: '',
         change_time: ' ',
-        apply_type: ' '
+        apply_type: '中心内部调拨'
       },
       useTypeS: '',
       carTypeS: '',
@@ -405,7 +439,12 @@ export default {
       window.history.go(-1);
     },
     onClickRight() {
-      Toast('按钮');
+      window.connectWebViewJavascriptBridge(function(bridge) {
+        console.log('关闭');
+        bridge.callHandler('closeCurWindow', function(response) {
+        });
+      });
+      window.webkit.messageHandlers.closeCurWindow.postMessage('关闭当前界面');
     },
     clickshowif(id) {
       this.ifNumber = id;
@@ -414,6 +453,8 @@ export default {
     handleClose(tag, id) {
       if (id === 1) {
         this.sendData.dispatch_user.splice(this.sendData.dispatch_user.indexOf(tag), 1);
+      } else if (id === 3) {
+        this.sendData.car_admin.splice(this.sendData.car_admin.indexOf(tag), 1);
       } else {
         this.sendData.copy_user.splice(this.sendData.copy_user.indexOf(tag), 1);
       }
@@ -422,8 +463,17 @@ export default {
       this.sendData.dispatching_info.splice(this.sendData.dispatching_info.indexOf(time), 1);
     },
     belongTypeonConfirm(value, index) {
-      // this.apply_type = value.name;
-      this.sendData.apply_type = value.name;
+      if (this.sendData.apply_type !== value.name) {
+        this.sendData.apply_dept_user = ' ';
+        this.sendData.subsidiary_person = ' ';
+        this.sendData.out_office_director = ' ';
+        this.sendData.out_president = ' ';
+        this.sendData.in_office_director = ' ';
+        this.sendData.in_president = ' ';
+        this.sendData.apply_type = value.name;
+      } else {
+        this.sendData.apply_type = value.name;
+      }
       this.showType = false;
     },
     levelClick(item) {
@@ -485,11 +535,40 @@ export default {
     },
     finalClick() {
       if (this.dataID && this.dataID === 1) {
-        this.sendData.in_dept = this.selectedList[0].mdm_code;
-        this.in_dept_name = this.selectedList[0].name;
+        this.sendData.in_dept_code = this.selectedList[0].mdm_code;
+        this.sendData.in_dept = this.selectedList[0].name;
+      } else if (this.dataID && this.dataID === 9) {
+        this.sendData.out_dept_code = this.selectedList[0].mdm_code;
+        this.sendData.out_dept = this.selectedList[0].name;
       } else if (this.dataID && this.dataID === 2) {
         this.sendData.apply_dept_user = this.selectedList[0].code;
         this.bmPeople = this.selectedList[0].name;
+      } else if (this.dataID && this.dataID === 10) {
+        this.sendData.region_person = this.selectedList[0].code;
+        this.region_person = this.selectedList[0].name;
+      } else if (this.dataID && this.dataID === 11) {
+        this.sendData.subsidiary_person = this.selectedList[0].code;
+        this.subsidiary_person = this.selectedList[0].name;
+      } else if (this.dataID && this.dataID === 12) {
+        this.sendData.out_office_director = this.selectedList[0].code;
+        this.out_office_director = this.selectedList[0].name;
+      } else if (this.dataID && this.dataID === 13) {
+        this.sendData.out_president = this.selectedList[0].code;
+        this.out_president = this.selectedList[0].name;
+      } else if (this.dataID && this.dataID === 14) {
+        this.sendData.in_office_director = this.selectedList[0].code;
+        this.in_office_director = this.selectedList[0].name;
+      } else if (this.dataID && this.dataID === 15) {
+        this.sendData.in_president = this.selectedList[0].code;
+        this.in_president = this.selectedList[0].name;
+      } else if (this.dataID && this.dataID === 6) {
+        this.sendData.car_admin = this.selectedList;
+      } else if (this.dataID && this.dataID === 7) {
+        this.sendData.out_operator = this.selectedList[0].name;
+        this.sendData.out_operator_code = this.selectedList[0].code;
+      } else if (this.dataID && this.dataID === 8) {
+        this.sendData.in_operator = this.selectedList[0].name;
+        this.sendData.in_operator_code = this.selectedList[0].code;
       } else if (this.dataID && this.dataID === 4) {
         this.sendData.use_people_name = this.selectedList[0].name;
         this.sendData.use_people = this.selectedList[0].mdm_code;
@@ -523,10 +602,19 @@ export default {
       this.showBM = false;
       this.showPeople = false;
       this.bmhide = true;
-      if (id === 1) {
+      if (id === 1 || id === 9) {
         this.showBM = true;
         this.getSelectData('');
-      } else if (id === 2) {
+      } else if (id === 2 || id === 10 || id === 11 || id === 12 || id === 13 || id === 14 || id === 15) {
+        this.showPeople = true;
+        this.getSelectData('', 1);
+      } else if (id === 6) {
+        this.showPeople = true;
+        this.getSelectData('', 1);
+      } else if (id === 7) {
+        this.showPeople = true;
+        this.getSelectData('', 1);
+      } else if (id === 8) {
         this.showPeople = true;
         this.getSelectData('', 1);
       } else if (id === 3) {
@@ -667,6 +755,9 @@ export default {
 </script>
 
 <style>
+.clearBotoom::after {
+  border-bottom-width: 0!important;
+}
 .van-collapse-item__content {
   padding: 0;
 }
@@ -797,7 +888,7 @@ export default {
   margin-bottom: 45px; 
   width: 100%;
   height: 1calc(100% - 180px);
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;
