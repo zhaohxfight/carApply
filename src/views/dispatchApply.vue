@@ -357,13 +357,18 @@ export default {
     onClickLeft() {
       window.history.go(-1);
     },
-    onClickRight() {
-      window.connectWebViewJavascriptBridge(function(bridge) {
-        console.log('关闭');
-        bridge.callHandler('closeCurWindow', function(response) {
-        });
-      });
+    closeCurWindow() {
       window.webkit.messageHandlers.closeCurWindow.postMessage('关闭当前界面');
+    },
+    onClickRight() {
+      if (!window.isIOS) {
+        window.connectWebViewJavascriptBridge(function(bridge) {
+          bridge.callHandler('closeCurWindow', function(response) {
+          });
+        });
+      } else {
+        this.closeCurWindow();
+      }
     },
     handleClose(tag, id) {
       if (id === 1) {

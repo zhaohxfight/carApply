@@ -53,4 +53,10 @@ body {
   width: 100%;
   height: auto;
 }
+.van-dialog__message--has-title {
+  text-align: center;
+}
+.van-dialog__confirm, .van-dialog__confirm:active {
+  color: #2486a5!important;
+}
 </style>

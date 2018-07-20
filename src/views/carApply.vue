@@ -46,19 +46,27 @@ export default {
   },
   methods: {
     onClickLeft() {
-      window.connectWebViewJavascriptBridge(function(bridge) {
-        bridge.callHandler('closeCurWindow', function(response) {
+      if (!window.isIOS) {
+        window.connectWebViewJavascriptBridge(function(bridge) {
+          bridge.callHandler('closeCurWindow', function(response) {
+          });
         });
-      });
+      } else {
+        this.closeCurWindow();
+      }
+    },
+    closeCurWindow() {
       window.webkit.messageHandlers.closeCurWindow.postMessage('关闭当前界面');
     },
     onClickRight() {
-      window.connectWebViewJavascriptBridge(function(bridge) {
-        console.log('关闭');
-        bridge.callHandler('closeCurWindow', function(response) {
+      if (!window.isIOS) {
+        window.connectWebViewJavascriptBridge(function(bridge) {
+          bridge.callHandler('closeCurWindow', function(response) {
+          });
         });
-      });
-      window.webkit.messageHandlers.closeCurWindow.postMessage('关闭当前界面');
+      } else {
+        this.closeCurWindow();
+      }
     },
     getBaseData() {
       this.$axios.get(this.baseUrl + 'apply/getuser', {
