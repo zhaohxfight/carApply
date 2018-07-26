@@ -59,4 +59,8 @@ body {
 .van-dialog__confirm, .van-dialog__confirm:active {
   color: #2486a5!important;
 }
+.van-button--primary {
+  background-color: #2486a5!important;
+  border: 1px solid #2486a5!important;
+}
 </style>

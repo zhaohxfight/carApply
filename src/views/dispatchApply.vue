@@ -20,8 +20,8 @@
             <van-collapse-item title="申请人信息" name="1"> 
               <van-field v-model="getMes.person" label="发起人"  disabled />
               <van-field v-model="getMes.time" label="发起时间" disabled  />
-              <van-field v-model="getMes.dept" label="所属组织"  disabled />
-              <van-field v-model="getMes.center" label="区域/中心"  disabled />
+              <van-field v-model="getMes.dept" label="所属组织"  disabled  autosize  type="textarea"/>
+              <van-field v-model="getMes.center" label="区域/中心"  disabled autosize type="textarea"/>
             </van-collapse-item>
             <van-collapse-item title="用车信息" name="2">
               <van-field v-model="sendData.title" label="标题" disabled required/>
@@ -48,14 +48,14 @@
 
             <van-collapse-item title="审批信息" name="3">
               <van-field label="审批人" type="number" placeholder="审批人已由系统设置" disabled/>
-              <van-cell is-link :value="apply_type" @click="showType = true" title="所属板块" placeholder="所属板块" required/>
+              <!-- <van-cell is-link :value="apply_type" @click="showType = true" title="所属板块" placeholder="所属板块" required/> -->
               <!-- <van-cell v-if="sendData.send_type === 1" is-link title="部门负责人" :value="bmPeople" @click="showSelectPopup(2)" required/> -->
-              <!-- <van-cell v-if="sendData.send_type === 1" v-model="in_president" title="部门负责人" required>
+              <van-cell v-if="sendData.send_type === 1" v-model="in_president" title="部门负责人" required>
                 <slot>
                   <span class="my-tag pr-2" v-for="tag in sendData.apply_dept_user"  @click="handleClose(tag, 3)">{{tag.name}} <van-icon name="close" class="tag-close my-Mestag" /></span>
                 </slot>
                 <van-icon  slot="right-icon" name="add-o" class="van-cell__right-icon tag-add" @click="showSelectPopup(2)" />      
-              </van-cell> -->
+              </van-cell>
               <van-cell v-if="sendData.send_type === 2" is-link title="中心/区域/子公司负责人" :value="in_president" @click="showSelectPopup(6)" required/>
               <!-- <van-cell v-model="message" title="车辆调度" >
                 <slot>

@@ -20,8 +20,8 @@
             <van-collapse-item title="申请人信息" name="1"> 
               <van-field v-model="getMes.person" label="发起人"  disabled />
               <van-field v-model="getMes.time" label="发起时间" disabled  />
-              <van-field v-model="getMes.dept" label="所属组织"  disabled />
-              <van-field v-model="getMes.center" label="区域/中心"  disabled />
+              <van-field v-model="getMes.dept" label="所属组织"  disabled autosize  type="textarea"/>
+              <van-field v-model="getMes.center" label="区域/中心"  disabled autosize  type="textarea"/>
             </van-collapse-item>
             <van-collapse-item title="处置信息" name="2">
               <van-field v-model="sendData.title" label="标题" disabled required/>
